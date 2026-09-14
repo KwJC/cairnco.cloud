@@ -1,0 +1,1257 @@
+<title>CairnCo</title>
+<!--==HEAD:START==-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#EDE6D8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap">
+<!--==HEAD:END==-->
+
+<style>
+/*==SHELL-A:START==*/
+:root{
+  --navh:80px;
+  --paper:#EDE6D8;
+  --paper-raised:#F5F0E5;
+  --paper-deep:#E4DBCA;
+  --ink:#1F2A26;
+  --body:#333333;
+  --muted:#5E6560;
+  --teal:#3D5A50;
+  --teal-deep:#2A3F38;
+  --teal-soft:rgba(61,90,80,.14);
+  --rust:#B5651D;
+
+  --display:"Lora",Georgia,"Times New Roman",serif;
+  --sans:"Work Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Space Mono","SF Mono",Consolas,monospace;
+
+  --s1:.5rem; --s2:.875rem; --s3:1.25rem; --s4:2rem; --s5:3rem; --s6:4.5rem; --s7:7rem;
+  --ease:cubic-bezier(.23,1,.32,1);
+  --maxw:1080px;
+}
+
+*{box-sizing:border-box}
+html{scrollbar-width:thin;scrollbar-color:rgba(61,90,80,.42) transparent}
+::-webkit-scrollbar{width:14px;height:14px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(61,90,80,.42);border-radius:999px;border:4px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(61,90,80,.72);background-clip:content-box}
+::-webkit-scrollbar-corner{background:transparent}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--body);
+  font-family:var(--sans);
+  font-size:17px;
+  font-weight:400;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:500;line-height:1.14;letter-spacing:-.022em;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit}
+
+/* ---------- topographic field ---------- */
+.topo{position:absolute;inset:0;z-index:0;pointer-events:none;color:var(--teal);overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%)}
+.topo svg{width:100%;height:100%;display:block}
+.topo--dense{opacity:.34}
+.topo--open{opacity:.24}
+.topo::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse 78% 62% at 30% 42%,rgba(237,230,216,.82) 0%,rgba(237,230,216,.30) 58%,rgba(237,230,216,0) 100%)}
+.has-topo{position:relative;isolation:isolate}
+.has-topo > .wrap{position:relative;z-index:1}
+
+.page{position:relative}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-inline:24px}
+
+/* ---------- nav ---------- */
+.page{padding-top:var(--navh)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:60;padding-block:15px;
+  background:var(--paper);border-bottom:1px solid rgba(61,90,80,.20);
+  transition:transform .34s var(--ease),box-shadow .3s var(--ease)}
+.nav.is-hidden{transform:translateY(-104%)}
+.nav.is-stuck{box-shadow:0 10px 26px rgba(31,42,38,.07)}
+.nav__in{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
+.mark{transition:color .18s var(--ease);font-family:var(--display);font-size:clamp(1.5rem,2.2vw,1.9rem);font-weight:600;color:var(--ink);text-decoration:none;letter-spacing:-.02em;white-space:nowrap}
+.mark span{color:var(--rust);transition:color .18s var(--ease)}
+.mark:hover{color:var(--rust)}
+.mark:hover span{color:var(--teal)}
+.nav__links{display:flex;gap:var(--s2);margin-left:auto;align-items:center;flex-wrap:wrap}
+.nav__links a{font-size:.94rem;text-decoration:none;color:var(--muted);
+  transition:color .18s var(--ease),background .18s var(--ease)}
+.nav__links a:not(.btn){padding:.46em .85em;border-radius:999px;line-height:1.2}
+.nav__links a:not(.btn):hover,.nav__links a:not(.btn):focus-visible{
+  color:var(--paper-raised);background:var(--rust)}
+.nav__links a.btn{color:var(--paper-raised)}
+.nav__links a.btn:hover{color:var(--paper-raised)}
+
+.btn{
+  display:inline-block;font-family:var(--sans);font-size:.95rem;font-weight:500;
+  padding:.72em 1.35em;border-radius:6px;text-decoration:none;
+  background:var(--teal);color:var(--paper-raised);border:1px solid var(--teal);
+  transition:background .18s var(--ease),transform .12s var(--ease);
+}
+.btn:hover{background:var(--rust);border-color:var(--rust)}
+.btn:active{transform:scale(.975)}
+.btn--ghost{background:transparent;color:var(--teal-deep);border:1px solid rgba(61,90,80,.38)}
+.btn--ghost:hover{background:var(--rust);border-color:var(--rust);color:var(--paper-raised)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:3px;border-radius:4px}
+
+/* ---------- phone proportions ----------
+   Every tap target clears 44px, the smallest type stops shrinking, and the
+   section rhythm tightens so a page is a scroll rather than a hike. */
+@media (max-width:700px){
+  body{font-size:16px}
+  .wrap{padding-inline:20px}
+  .sec{padding-block:var(--s5)}
+  /* the closing and the footer share one screen */
+  .page .close{padding-block:var(--s5) var(--s4)}
+  .page .close h2{font-size:clamp(1.85rem,7.4vw,2.4rem);max-width:14ch}
+  .page .close__sub{margin-top:var(--s2);font-size:1.12rem}
+  .page .close__cta{margin-top:var(--s3)}
+  .page .close__cta .btn{width:100%;text-align:center}
+  .page .close__fine{margin-top:var(--s2);font-size:.9rem;line-height:1.5}
+  .page .mark{padding-block:.18em}
+  .page .foot{padding-block:var(--s4) var(--s4)}
+  .page .foot__links{gap:.35rem var(--s2)}
+  .page .foot__links a{padding:.78em .85em;font-size:1rem}
+  .page .foot__legal{font-size:.82rem;line-height:2}
+  .btn{padding:.85em 1.4em;font-size:1rem}
+  .page .close__fine a{display:inline-block;padding:.7em .7em}
+}
+@media (max-width:420px){
+  .wrap{padding-inline:16px}
+}
+
+/* ---------- the menu button, phone only ---------- */
+.nav__toggle{display:none;margin-left:auto;width:46px;height:46px;padding:0;
+  background:none;border:0;cursor:pointer;color:var(--ink);
+  align-items:center;justify-content:center;border-radius:10px;
+  transition:color .18s var(--ease),background .18s var(--ease)}
+.nav__toggle:hover,.nav__toggle:focus-visible{color:var(--paper-raised);background:var(--rust)}
+.nav__bars{display:block;width:22px;height:14px;position:relative}
+.nav__bars::before,.nav__bars::after,.nav__bars i{content:"";position:absolute;left:0;right:0;
+  height:2px;border-radius:2px;background:currentColor;
+  transition:transform .26s var(--ease),opacity .18s var(--ease)}
+.nav__bars::before{top:0} .nav__bars i{top:6px} .nav__bars::after{top:12px}
+.nav.is-open .nav__bars::before{transform:translateY(6px) rotate(45deg)}
+.nav.is-open .nav__bars i{opacity:0}
+.nav.is-open .nav__bars::after{transform:translateY(-6px) rotate(-45deg)}
+
+/* Below 700px the four links wrapped under the wordmark and the header grew to
+   ~200px, a quarter of a phone screen, while .page only reserved --navh. They
+   move behind the menu button instead, which puts the bar back to one row and
+   lets it hide on scroll again. */
+@media (max-width:700px){
+  :root{--navh:62px}
+  .nav{padding-block:8px}
+  .nav__toggle{display:flex}
+  .mark{font-size:1.5rem}
+  .nav__links{position:absolute;left:0;right:0;top:100%;margin-left:0;
+    flex-direction:column;align-items:stretch;gap:4px;flex-wrap:nowrap;
+    background:var(--paper-raised);border-bottom:1px solid rgba(61,90,80,.26);
+    box-shadow:0 20px 36px rgba(31,42,38,.16);
+    padding:10px 20px var(--s3);
+    transform-origin:top;opacity:0;transform:translateY(-8px);pointer-events:none;
+    transition:opacity .22s var(--ease),transform .26s var(--ease)}
+  .nav.is-open .nav__links{opacity:1;transform:none;pointer-events:auto}
+  .nav__links a:not(.btn){padding:.85em .65em;border-radius:8px;font-size:1.06rem;
+    color:var(--ink);border-bottom:1px solid rgba(61,90,80,.12)}
+  .nav__links a:not(.btn):last-of-type{border-bottom:0}
+  .nav__links a.btn{margin-top:10px;text-align:center;padding:.95em 1.35em;font-size:1.02rem}
+}
+/*==SHELL-A:END==*/
+
+/* ---------- hero ---------- */
+.hero{padding-block:var(--s3) var(--s2);position:relative;overflow:hidden;isolation:isolate}
+.hero__grid{display:grid;grid-template-columns:minmax(0,46%) minmax(0,54%);gap:var(--s4);align-items:center;
+  position:relative;z-index:2;min-height:calc(79vh - var(--navh))}
+.hero__text{position:relative}
+.hero__text::before{content:"";position:absolute;inset:-56px -140px -48px -48px;z-index:-1;
+  background:radial-gradient(ellipse 76% 82% at 32% 50%,var(--paper) 40%,rgba(237,230,216,.86) 62%,rgba(237,230,216,0) 100%)}
+.hero h1{font-size:clamp(2.4rem,4.8vw,4rem);max-width:none;letter-spacing:-.03em}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero__sub{margin-top:var(--s3);font-size:clamp(1.08rem,1.6vw,1.34rem);max-width:42ch;color:var(--body);line-height:1.55}
+.hero__cta{display:flex;gap:var(--s3);margin-top:var(--s5);flex-wrap:wrap}
+.hero__cta .btn{font-size:1.06rem;padding:.92em 1.7em;border-radius:8px}
+
+.terrain{position:absolute;inset:0;z-index:0;pointer-events:none;display:block;width:100%;height:100%}
+
+/* landmark pins */
+.hero__map{position:relative;height:100%;min-height:340px;z-index:3}
+.hero__hint{position:absolute;right:0;left:auto;bottom:auto;top:var(--hintY,80%);
+  transform:translateY(-50%);z-index:4;
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);pointer-events:none;white-space:nowrap}
+.pin{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-100%);
+  background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit;line-height:0;
+  filter:drop-shadow(0 3px 4px rgba(31,42,38,.22))}
+.pin__svg{display:block;width:40px;height:55px;overflow:visible;
+  transition:transform .22s var(--ease)}
+.pin__body{fill:var(--teal);transition:fill .22s var(--ease)}
+.pin__eye{fill:var(--paper-raised)}
+.pin:hover .pin__svg,.pin:focus-visible .pin__svg{transform:translateY(-4px) scale(1.08)}
+.pin:hover .pin__body,.pin:focus-visible .pin__body{fill:var(--rust)}
+/* the ground the needle stands on */
+.pin::after{content:"";position:absolute;left:50%;bottom:-4px;width:25px;height:7px;
+  transform:translateX(-50%);border-radius:50%;background:rgba(31,42,38,.16);
+  transition:transform .22s var(--ease),opacity .22s var(--ease)}
+.pin:hover::after,.pin:focus-visible::after{transform:translateX(-50%) scale(1.25);opacity:.75}
+.pin__label{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translate(-50%,6px);
+  white-space:nowrap;background:var(--paper-raised);color:var(--teal-deep);
+  border:1px solid rgba(61,90,80,.24);border-radius:6px;padding:.42em .78em;
+  font-family:var(--mono);font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;line-height:1.2;
+  box-shadow:0 4px 14px rgba(31,42,38,.09);
+  opacity:0;pointer-events:none;transition:opacity .22s var(--ease),transform .22s var(--ease)}
+.pin:hover .pin__label,.pin:focus-visible .pin__label{opacity:1;transform:translate(-50%,0)}
+
+/* the pins are a hover interaction and a phone has no hover, so on touch the
+   terrain stays as a backdrop and the same five services read as a line */
+.hero__svcs{display:none;margin-top:var(--s3);font-size:1rem;line-height:1.7;color:var(--teal-deep)}
+.hero__svcs b{color:var(--rust);font-weight:400;padding-inline:.18em}
+
+.creds{position:relative;z-index:2;padding-block:var(--s3) var(--s1);margin-top:var(--s3);font-size:.92rem;color:var(--muted);display:flex;gap:1.5rem;flex-wrap:wrap}
+.creds span{display:flex;align-items:center;gap:.5rem}
+.creds span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--teal);opacity:.55;flex:none}
+
+/* ---------- section rules ---------- */
+.sec,.close,.creds-sec{position:relative}
+.sec::before,.close::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(61,90,80,.26) 12%,rgba(61,90,80,.26) 88%,transparent)}
+
+/* ---------- section head ---------- */
+.sec{padding-block:var(--s5)}
+.sec__sub{margin-top:var(--s2);font-size:1.06rem;color:var(--muted);max-width:54ch;line-height:1.5}
+.sec__head{max-width:34ch}
+.issue .sec__head,.who .sec__head{max-width:none}
+.sec__head h2{font-size:clamp(1.9rem,3.8vw,2.85rem)}
+
+/* ---------- the issue: what we keep finding + the review wheel ---------- */
+.issue{position:relative;padding-block:0}
+.issue__runway{position:relative;min-height:calc(58vh + 740px)}
+.issue__pin{position:sticky;top:var(--navh);min-height:calc(100vh - var(--navh));
+  display:flex;align-items:center}
+.issue__grid{display:grid;grid-template-columns:minmax(0,44%) minmax(0,56%);
+  column-gap:64px;row-gap:var(--s4);align-items:center;width:100%}
+.issue__copy h2{font-size:clamp(2.1rem,4.1vw,3.1rem)}
+.issue__copy p{margin-top:var(--s3);max-width:44ch;font-size:1.14rem}
+.issue__copy .punch{margin-top:var(--s4);font-family:var(--display);
+  font-size:clamp(1.36rem,2.35vw,1.82rem);color:var(--ink);line-height:1.32;max-width:21ch;
+  border-left:3px solid var(--rust);padding-left:1.1rem}
+
+.reviews{position:relative}
+.reviews__wheel{display:flex;align-items:stretch;gap:14px}
+.reviews__wheel .stage{flex:1 1 auto;min-width:0}
+.reviews__label{font-family:var(--mono);font-size:.73rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:block;text-align:center;
+  position:relative;z-index:2}
+.stage{position:relative;height:262px;perspective:1150px;perspective-origin:50% 44%}
+.rev{position:absolute;left:0;right:0;top:50%;margin-top:-114px;
+  background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);border-radius:15px;
+  padding:26px 28px;box-shadow:0 16px 36px rgba(31,42,38,.11);
+  transform-origin:50% 50%;will-change:transform,opacity;backface-visibility:hidden}
+.rev__row{display:flex;align-items:center;gap:12px}
+.rev__avatar{width:44px;height:44px;border-radius:50%;background:var(--paper-deep);flex:none;
+  overflow:hidden;display:grid;place-items:center}
+.rev__avatar svg{width:44px;height:44px;display:block;fill:#A8AC9F}
+.rev__name{height:13px;width:130px;border-radius:3px;
+  background:linear-gradient(90deg,#C7C1B2,#DAD4C6);filter:blur(2.8px)}
+.rev__when{margin-top:6px;font-size:.84rem;color:var(--muted)}
+.rev__stars{margin-top:15px;font-size:1.18rem;letter-spacing:3px;color:var(--rust);line-height:1}
+.rev__body{margin-top:11px;font-size:1.16rem;color:var(--ink);line-height:1.45}
+.rev__biz{margin-top:15px;padding-top:12px;border-top:1px solid rgba(61,90,80,.14);
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;color:var(--muted);
+  display:flex;align-items:center;gap:9px}
+.reviews__count{margin-top:24px;font-family:var(--mono);font-size:.8rem;color:var(--muted);
+  font-variant-numeric:tabular-nums;text-align:center}
+
+/* the wheel hands over to chevrons once it has been scrolled through once.
+   the column is always reserved, so nothing reflows at the handover. */
+.reviews__nav{flex:0 0 38px;display:flex;flex-direction:column;justify-content:space-between;
+  align-items:center;padding-block:6px;opacity:0;pointer-events:none;
+  transition:opacity .45s var(--ease)}
+.issue.is-manual .reviews__nav{opacity:1;pointer-events:auto}
+.chev{appearance:none;background:none;border:0;padding:6px 4px;margin:0;cursor:pointer;
+  color:var(--teal);line-height:0;transition:color .2s var(--ease),transform .2s var(--ease)}
+.chev svg{width:22px;height:13px;display:block;fill:none;stroke:currentColor;
+  stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.chev:hover,.chev:focus-visible{color:var(--rust);transform:scale(1.18)}
+.chev:focus-visible{outline:2px solid var(--rust);outline-offset:3px;border-radius:4px}
+.chev:active{transform:scale(.94)}
+.issue.is-manual .rev{transition:transform .52s var(--ease),opacity .38s var(--ease)}
+
+/* on a phone the copy and the wheel share one screen: the column stacks and the
+   stack itself shrinks, since the copy is staying whole */
+@media (max-width:900px){
+  .issue__runway{min-height:calc(58vh + 620px)}
+  .issue__grid{grid-template-columns:1fr;row-gap:clamp(14px,2.4vh,26px);
+    align-content:center}
+  .issue__copy h2{font-size:clamp(1.6rem,5.4vw,2.1rem)}
+  .issue__copy p{margin-top:clamp(.5rem,1.4vh,1rem);font-size:clamp(.94rem,1.9vh,1.04rem);
+    line-height:1.45;max-width:none}
+  .issue__copy .punch{margin-top:clamp(.7rem,1.8vh,1.4rem);
+    font-size:clamp(1.06rem,2.5vh,1.3rem);line-height:1.3;max-width:none;
+    border-left-width:3px;padding-left:.85rem}
+  .reviews__label{margin-bottom:6px}
+  /* the card centres itself rather than being offset by a fixed margin, so its
+     height no longer has to be guessed */
+  .stage{height:clamp(186px,30vh,264px);perspective:900px;display:grid;place-items:center}
+  .rev{top:auto;margin-top:0;padding:13px 15px;border-radius:12px}
+  .rev__avatar,.rev__avatar svg{width:34px;height:34px}
+  .rev__row{gap:10px}
+  .rev__name{height:11px;width:104px}
+  .rev__when{margin-top:4px;font-size:.8rem}
+  .rev__stars{margin-top:10px;font-size:1rem}
+  .rev__body{margin-top:7px;font-size:clamp(.92rem,1.85vh,1rem);line-height:1.32}
+  .rev__biz{margin-top:10px;padding-top:8px;font-size:.68rem}
+  .reviews__count{margin-top:12px;font-size:.76rem}
+}
+
+/* no JS, reduced motion, or narrow: a plain readable list */
+.issue.is-static .issue__runway{min-height:0}
+.issue.is-static .issue__pin{position:static;min-height:0;display:block;padding-block:var(--s6)}
+.issue.is-static .stage{height:auto;perspective:none;display:flex;flex-direction:column;gap:16px}
+.issue.is-static .rev{position:relative;top:auto;margin-top:0;
+  transform:none !important;opacity:1 !important;visibility:visible !important}
+.issue.is-static .reviews__count{display:none}
+.issue.is-static .reviews__nav{display:none}
+.issue.is-static .reviews__wheel{display:block}
+.issue.is-static .reviews__label{margin-bottom:var(--s3)}
+
+/* ---------- who we build for ---------- */
+.who{padding-block:0}
+.who__screen{min-height:calc(100vh - var(--navh));display:flex;flex-direction:column;
+  justify-content:center;padding-block:clamp(26px,4.5vh,52px)}
+.who__door{padding-block:0 var(--s5);margin-top:var(--s4)}
+.sec__sub{margin-top:var(--s2);font-size:1.06rem;color:var(--muted);max-width:none;line-height:1.5}
+
+.sectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(14px,2.2vh,22px);margin-top:clamp(20px,3.4vh,40px)}
+.sector{position:relative;overflow:hidden;display:block;text-decoration:none;color:inherit;
+  background:var(--paper-raised);border:1px solid rgba(61,90,80,.16);border-radius:14px;
+  padding:clamp(1.05rem,2.3vh,1.7rem) clamp(1.1rem,1.6vw,1.6rem);
+  transition:border-color .25s var(--ease),box-shadow .25s var(--ease)}
+.sector__in{display:flex;flex-direction:column;height:100%;
+  transition:filter .3s var(--ease),opacity .3s var(--ease)}
+.sector__in::before{content:"";display:block;width:34px;height:2px;background:var(--rust);
+  border-radius:2px;margin-bottom:clamp(.6rem,1.4vh,1.1rem)}
+.sector h3{font-size:clamp(1.1rem,2.1vh,1.34rem);margin-bottom:.45rem}
+.sector__lede{color:var(--muted);font-size:clamp(.92rem,1.7vh,1rem);line-height:1.45;
+  margin-bottom:clamp(.7rem,1.8vh,1.25rem);max-width:40ch}
+.sector ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;
+  gap:clamp(.34rem,.9vh,.55rem);margin-top:auto}
+.sector li{font-size:clamp(.88rem,1.65vh,.98rem);padding-left:1.4rem;position:relative;color:var(--body)}
+.sector li::before{content:"";position:absolute;left:0;top:.62em;width:11px;height:2px;
+  background:var(--teal);opacity:.5}
+
+/* hover: the card softens and offers the way in */
+.sector__hov{position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+  padding:1.4rem;opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .3s var(--ease),transform .34s var(--ease)}
+/* a soft terracotta wash, blurred so it has no edge of its own */
+.sector__hov::before{content:"";position:absolute;inset:-14%;border-radius:inherit;
+  background:radial-gradient(ellipse 78% 72% at 50% 48%,
+    rgba(181,101,29,.96) 0%,rgba(181,101,29,.88) 52%,rgba(160,87,22,.74) 100%);
+  filter:blur(16px)}
+.sector__hov span{position:relative;display:inline-block;color:var(--paper-raised);
+  font-family:var(--display);font-size:clamp(1.02rem,2vh,1.24rem);font-weight:500;
+  letter-spacing:-.012em;line-height:1.3;max-width:15ch;
+  text-shadow:0 1px 12px rgba(74,38,6,.5)}
+.sector:hover .sector__in,.sector:focus-visible .sector__in{filter:blur(4px);opacity:.25}
+.sector:hover .sector__hov,.sector:focus-visible .sector__hov{opacity:1;transform:none}
+.sector:hover{border-color:var(--rust);box-shadow:0 10px 26px rgba(31,42,38,.08)}
+
+.sector--door{grid-column:1 / -1;background:transparent;border:1px dashed rgba(181,101,29,.5);
+  display:flex;flex-direction:row;gap:1.5rem;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;overflow:visible}
+.sector--door::before{display:none}
+
+/* on a phone the four sectors and the door become one continuous row that is
+   scrolled sideways by hand. no snap, no counter, nothing added. */
+@media (max-width:700px){
+  .who__screen{min-height:0;padding-block:var(--s5)}
+  .who__door{display:none}
+  .sectors{display:flex;flex-wrap:nowrap;gap:12px;
+    overflow-x:auto;overflow-y:visible;
+    -webkit-overflow-scrolling:touch;scroll-snap-type:none;
+    padding-inline:20px;margin-inline:-20px;
+    padding-block:4px 12px}
+  .sectors::-webkit-scrollbar{height:0;display:none}
+  .sectors{scrollbar-width:none}
+  .sector{flex:0 0 76%;min-width:0}
+  .sector--door{flex:0 0 76%;grid-column:auto;display:flex;flex-direction:column;
+    align-items:flex-start;justify-content:center;gap:var(--s3);
+    background:transparent;overflow:hidden}
+  .sector--door .btn{width:100%;text-align:center}
+}
+@media (max-width:420px){
+  .sectors{padding-inline:16px;margin-inline:-16px}
+  .sector,.sector--door{flex:0 0 82%}
+}
+
+/* rise into place, one layer at a time, as the scroll reaches each one */
+.who.js .rise-up{opacity:0;transform:translateY(28px)}
+.rise-up{transition:opacity .58s var(--ease),transform .64s var(--ease)}
+.who.js .rise-up.is-in{opacity:1;transform:none}
+.who.is-up .rise-up{opacity:1;transform:none}
+
+/* ---------- the route ---------- */
+.route{padding-block:0;position:relative}
+.route__runway{position:relative;min-height:calc(100vh + 460px)}
+.route__pin{position:sticky;top:var(--navh);height:calc(100vh - var(--navh));
+  display:flex;flex-direction:column;justify-content:center}
+.route__head{text-align:center;margin-bottom:clamp(8px,1.6vh,20px)}
+.route__head h2{font-size:clamp(1.8rem,3.4vw,2.6rem)}
+.route__head p{margin-top:.5rem;color:var(--muted);font-size:clamp(.95rem,1.7vh,1.06rem)}
+.route__map{position:relative;width:100%;flex:1 1 auto;min-height:0;max-height:74vh}
+.route__svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.route__line{fill:none;stroke:var(--teal);stroke-width:2.2;stroke-opacity:.58;
+  stroke-linecap:round;vector-effect:non-scaling-stroke}
+.route__draw{fill:none;stroke:var(--rust);stroke-width:3;stroke-linecap:round;
+  vector-effect:non-scaling-stroke}
+.route__node{fill:var(--paper);stroke:var(--teal);stroke-width:2.4;
+  vector-effect:non-scaling-stroke;transition:fill .3s var(--ease),stroke .3s var(--ease)}
+.route__node.is-lit{fill:var(--teal);stroke:var(--teal)}
+.route__node.is-now{fill:var(--rust);stroke:var(--rust)}
+
+.step{position:absolute;width:26%;transform:translateY(-50%);
+  transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.step--l{right:71.5%;text-align:right}
+.step--r{left:71.5%;text-align:left}
+.step__n{font-family:var(--mono);font-size:.82rem;letter-spacing:.09em;
+  transition:color .35s var(--ease)}
+.step h3{font-size:clamp(1.12rem,2.2vh,1.42rem);margin:.18rem 0 .32rem;
+  transition:color .35s var(--ease)}
+.step__one{font-size:clamp(.95rem,1.75vh,1.08rem);line-height:1.42;
+  transition:color .35s var(--ease)}
+.step__you{font-size:clamp(.86rem,1.55vh,.98rem);line-height:1.4;
+  max-height:0;opacity:0;overflow:hidden;
+  transition:max-height .45s var(--ease),opacity .35s var(--ease),
+             margin .45s var(--ease),color .35s var(--ease)}
+
+/* ahead: muted. reached: ink, and it stays there. the marker itself: rust.
+   nothing ever collapses again once it has opened. */
+.route.js .step .step__n,
+.route.js .step .step__one,
+.route.js .step .step__you{color:var(--muted)}
+.route.js .step h3{color:var(--muted)}
+
+.route.js .step.is-lit .step__n{color:var(--teal)}
+.route.js .step.is-lit h3{color:var(--ink)}
+.route.js .step.is-lit .step__one{color:var(--body)}
+.route.js .step.is-lit .step__you{color:var(--muted);max-height:6.5em;opacity:1;margin-top:.42rem}
+
+.route.js .step.is-now .step__n,
+.route.js .step.is-now h3,
+.route.js .step.is-now .step__one,
+.route.js .step.is-now .step__you{color:var(--rust)}
+
+/* no JS, reduced motion, or narrow: a plain ordered list */
+.route.is-static .route__runway{min-height:0}
+.route.is-static .route__pin{position:static;height:auto;display:block;padding-block:var(--s5)}
+.route.is-static .route__map{position:static;max-height:none;display:flex;
+  flex-direction:column;gap:var(--s3);margin-top:var(--s4)}
+.route.is-static .route__svg{display:none}
+.route.is-static .step{position:static;width:auto;transform:none;opacity:1;text-align:left}
+.route.is-static .step__you{max-height:none;opacity:1;margin-top:.4rem}
+
+/* on a phone the serpentine becomes a vertical rail: one line, a node per step,
+   each lighting as it reaches the middle of the screen. the closing caption on
+   each step goes, so the list stays short. */
+@media (max-width:900px){
+  .route.is-static .route__map{position:relative;padding-left:34px;gap:0}
+  .route.is-static .route__map::before{content:"";position:absolute;
+    left:10px;top:.55em;bottom:.55em;width:2px;border-radius:2px;
+    background:rgba(61,90,80,.30)}
+  .route.is-static .route__rail{position:absolute;left:10px;top:.55em;width:2px;
+    border-radius:2px;background:var(--rust);height:0;
+    transition:height .25s linear}
+  /* the serpentine positions the steps with left/right percentages. relative
+     positioning is needed for the node dots, so those offsets are cleared or
+     they shove every step most of the way across the screen. */
+  .route.is-static .step{padding-block:var(--s3);position:relative;
+    left:auto;right:auto;width:auto;text-align:left}
+  .route.is-static .step:first-child{padding-top:0}
+  .route.is-static .step:last-child{padding-bottom:0}
+  .route.is-static .step::before{content:"";position:absolute;left:-29px;top:calc(var(--s3) + .3em);
+    width:12px;height:12px;border-radius:50%;box-sizing:border-box;
+    background:var(--paper);border:2px solid var(--teal);
+    transition:background .3s var(--ease),border-color .3s var(--ease),transform .3s var(--ease)}
+  .route.is-static .step:first-child::before{top:.3em}
+  .route.is-static .step.is-lit::before{background:var(--rust);border-color:var(--rust);
+    transform:scale(1.18)}
+  .route.is-static .step__you{display:none}
+  .route.is-static .step__n{color:var(--muted);transition:color .3s var(--ease)}
+  .route.is-static .step h3{color:var(--muted);transition:color .3s var(--ease)}
+  .route.is-static .step__one{color:var(--muted);transition:color .3s var(--ease)}
+  .route.is-static .step.is-lit .step__n{color:var(--teal)}
+  .route.is-static .step.is-lit h3{color:var(--ink)}
+  .route.is-static .step.is-lit .step__one{color:var(--body)}
+  .route__head p{text-wrap:balance}
+}
+
+/* ---------- closing ---------- */
+.close{padding-block:var(--s6);text-align:left}
+.close h2{font-size:clamp(2.1rem,4.6vw,3.2rem);max-width:16ch}
+.close__sub{margin-top:var(--s3);font-family:var(--display);font-size:clamp(1.2rem,2.4vw,1.6rem);color:var(--teal)}
+.close__cta{margin-top:var(--s4);display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.close__fine{margin-top:var(--s3);font-size:.94rem;color:var(--muted)}
+.close__fine a{color:var(--teal-deep);text-decoration:none;padding:.18em .5em;border-radius:5px;
+  transition:color .18s var(--ease),background .18s var(--ease)}
+.close__fine a:hover,.close__fine a:focus-visible{color:var(--paper-raised);background:var(--rust)}
+
+/*==SHELL-B:START==*/
+/* ---------- footer ---------- */
+.foot{border-top:1px solid rgba(61,90,80,.22);padding-block:var(--s4) var(--s5);
+  display:flex;gap:var(--s3) var(--s4);flex-wrap:wrap;justify-content:space-between;align-items:flex-start}
+.foot__legal{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em;color:var(--muted);line-height:1.9}
+.foot__links{display:flex;gap:var(--s3);flex-wrap:wrap;font-size:.94rem}
+.foot__links a{text-decoration:none;color:var(--muted);padding:.4em .8em;border-radius:999px;
+  transition:color .18s var(--ease),background .18s var(--ease)}
+.foot__links a:hover,.foot__links a:focus-visible{color:var(--paper-raised);background:var(--rust)}
+/*==SHELL-B:END==*/
+
+/* ---------- reveal (from a visible resting state) ---------- */
+.rise{opacity:.999;transform:translateY(10px);transition:transform .6s var(--ease),opacity .6s var(--ease)}
+.rise.is-in{transform:none}
+
+@media (max-width:720px){
+  .fall{display:none}
+}
+@media (max-width:700px),(hover:none){
+  .hero__map{display:none}
+  .hero__svcs{display:block}
+}
+@media (max-width:900px){
+  .issue__grid{grid-template-columns:1fr;gap:var(--s4)}
+  .hero__grid{grid-template-columns:1fr;gap:var(--s4);min-height:0}
+  .hero__map{min-height:300px}
+  .proc__grid{grid-template-columns:1fr;gap:var(--s4)}
+  .proc__stick{position:relative;top:0;height:150px;width:150px}
+  .sectors{grid-template-columns:1fr}
+  .sector:nth-child(n){grid-column:span 1}
+  .sector--wide ul{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  body{font-size:16px}
+  .stone,.stone--owner{width:100% !important}
+  .stone:nth-child(odd){transform:rotate(-1.4deg)}
+  .stone:nth-child(even){transform:rotate(1.5deg)}
+  .stone:nth-child(n){margin-top:0}
+  .sec{padding-block:var(--s5)}
+}
+@media (max-width:700px){
+  /* ---- hero: a lighter scrim, and the two buttons share one row ---- */
+  .hero__text::before{inset:-28px -24px -24px -24px;
+    background:radial-gradient(ellipse 92% 88% at 40% 50%,
+      rgba(237,230,216,.62) 0%,rgba(237,230,216,.34) 58%,rgba(237,230,216,0) 100%)}
+  .hero__cta{flex-wrap:nowrap;gap:10px;margin-top:var(--s4)}
+  .hero .hero__cta .btn{flex:1 1 0;min-width:0;width:auto;text-align:center;
+    font-size:.92rem;line-height:1.25;padding:.72em .6em;border-radius:8px}
+
+  .reviews__label{font-size:.8rem}
+  .rev__biz{font-size:.78rem}
+  .rev__when{font-size:.9rem}
+  .rev__body{font-size:1.06rem}
+  .rev{padding:20px 20px}
+  .creds{font-size:.95rem;gap:.5rem 1.2rem}
+  .step__n{font-size:.84rem}
+  .hero h1{font-size:clamp(2.1rem,8.6vw,2.9rem)}
+  .hero__cta{gap:var(--s2);margin-top:var(--s4)}
+  .hero__cta .btn{width:100%;text-align:center}
+  .sector__hov span{font-size:1.06rem}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .rise{transform:none}
+}
+</style>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+<linearGradient id="stone0" x1=".22" y1="0" x2=".72" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone1" x1=".05" y1=".12" x2=".9" y2=".86"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone2" x1=".34" y1="0" x2=".56" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone3" x1=".12" y1="0" x2=".95" y2=".7"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient></defs></svg>
+
+<div class="page">
+<!--==NAV:START==-->
+<header class="nav"><div class="wrap nav__in">
+  <a class="mark" href="index.html">Cairn<span>Co</span></a>
+  <button class="nav__toggle" id="navToggle" type="button"
+          aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+    <span class="nav__bars" aria-hidden="true"><i></i></span>
+  </button>
+  <nav class="nav__links" id="navLinks">
+    <a href="landmarks.html">Landmarks</a>
+    <a href="kit.html">The Kit</a>
+    <a href="newsroom.html">Newsroom</a>
+    <a class="btn" href="contact.html">Contact us</a>
+  </nav>
+</div></header>
+<!--==NAV:END==-->
+
+<main>
+
+<section class="hero" id="hero">
+  <canvas class="terrain" id="heroField" aria-hidden="true"></canvas>
+  <div class="wrap hero__grid">
+    <div class="hero__text">
+      <h1>You run the business.<br><em>We run the tech.</em></h1>
+      <p class="hero__sub">Technology that quietly works, so you can stop thinking about it. Built, launched, and kept running.</p>
+      <p class="hero__svcs">Websites <b>&middot;</b> Internal Tools <b>&middot;</b> AI Workflows <b>&middot;</b> Automation <b>&middot;</b> Cloud</p>
+      <div class="hero__cta">
+        <a class="btn" href="contact.html">Book a discovery call</a>
+        <a class="btn btn--ghost" href="#work">See what we build</a>
+      </div>
+    </div>
+    <div class="hero__map" id="heroMap">
+      <button class="pin" type="button" style="--x:24%;--y:70%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Websites</span></button>
+      <button class="pin" type="button" style="--x:45%;--y:34%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Internal Tools</span></button>
+      <button class="pin" type="button" style="--x:63%;--y:57%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">AI Workflows</span></button>
+      <button class="pin" type="button" style="--x:81%;--y:26%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Automation</span></button>
+      <p class="hero__hint">Hover a pin to see what we build</p>
+      <button class="pin" type="button" style="--x:88%;--y:74%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Cloud</span></button>
+    </div>
+  </div>
+  <div class="wrap creds">
+    <span>Registered Singapore LLP</span>
+    <span>Based in Singapore</span>
+    <span>Replies within one working day</span>
+  </div>
+</section>
+
+<section class="sec issue" id="problem">
+  <div class="issue__runway" id="issueRunway">
+    <div class="issue__pin">
+      <div class="wrap issue__grid">
+
+        <div class="issue__copy">
+          <h2>What we keep finding</h2>
+          <p>Nobody sets out to end up here. It happens one reasonable decision at a time. A freelancer for the site. Someone else for payments. A tool signed up for in 2022 that nobody has logged into since.</p>
+          <p>Every choice made sense on its own. Nobody was ever responsible for the whole.</p>
+          <p class="punch">That is the job. Not a website. The whole thing.</p>
+        </div>
+
+        <div class="reviews">
+          <span class="reviews__label">Fragments of the problem</span>
+          <div class="reviews__wheel">
+          <div class="stage" id="revStage">
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">3 weeks ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">Tried the contact form three times. Never heard back. Assumed they had shut down.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">a month ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">Site looks like nothing has been touched since 2017. Could not tell if they were still trading.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">2 months ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">Got three separate emails about one booking, from three different systems.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">2 months ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">They still had my old address on file. Delivery went to a flat I left two years ago.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">4 months ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">Waited four days for a quote. Was told someone has to work them out by hand.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">5 months ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">Half the site still says coming soon. It has said that for a year.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">6 months ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">Booking page has been down all week. Nobody there seems able to fix it.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+            <article class="rev">
+              <div class="rev__row">
+                <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
+                <div><div class="rev__name"></div><div class="rev__when">7 months ago</div></div>
+              </div>
+              <div class="rev__stars" aria-label="one star out of five">★☆☆☆☆</div>
+              <p class="rev__body">Ended up phoning the owner directly. He apologised and said he would sort it out himself.</p>
+              <p class="rev__biz">Reviewed: a business like yours</p>
+            </article>
+          </div>
+            <div class="reviews__nav" id="revNav">
+              <button type="button" class="chev chev--up" id="revUp" aria-label="Previous fragment"><svg viewBox="0 0 22 13" aria-hidden="true"><path d="M2 11 L11 2 L20 11"/></svg></button>
+              <button type="button" class="chev chev--dn" id="revDn" aria-label="Next fragment"><svg viewBox="0 0 22 13" aria-hidden="true"><path d="M2 2 L11 11 L20 2"/></svg></button>
+            </div>
+          </div>
+          <p class="reviews__count"><span id="revNum">01</span> / 08</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec who" id="work">
+  <div class="wrap who__screen">
+    <div class="sec__head rise-up"><h2>Who we build for</h2>
+      <p class="sec__sub">We are not specialists in your industry. We are specialists in what breaks in it.</p></div>
+    <div class="sectors">
+      <a class="sector rise-up" href="#">
+        <span class="sector__in">
+          <h3>Retail &amp; F&amp;B</h3>
+          <p class="sector__lede">Stock, orders and bookings that stop disagreeing with each other.</p>
+          <ul>
+            <li>Online ordering and reservations</li>
+            <li>POS and inventory that sync</li>
+            <li>Loyalty and repeat campaigns</li>
+            <li>Delivery platform reconciliation</li>
+          </ul>
+        </span>
+        <span class="sector__hov"><span>Explore Retail and F&amp;B solutions</span></span>
+      </a>
+      <a class="sector rise-up" href="#">
+        <span class="sector__in">
+          <h3>Education</h3>
+          <p class="sector__lede">Enrolment, attendance and fees, without the spreadsheet in the middle.</p>
+          <ul>
+            <li>Enrolment and class scheduling</li>
+            <li>Parent portals and comms</li>
+            <li>Attendance and fee collection</li>
+            <li>Course and programme sites</li>
+          </ul>
+        </span>
+        <span class="sector__hov"><span>Explore Education solutions</span></span>
+      </a>
+      <a class="sector rise-up" href="#">
+        <span class="sector__in">
+          <h3>Professional Services</h3>
+          <p class="sector__lede">Less admin between winning the work and actually getting paid.</p>
+          <ul>
+            <li>Client portals and documents</li>
+            <li>Proposal and invoice automation</li>
+            <li>A CRM people actually use</li>
+            <li>A site that wins enquiries</li>
+          </ul>
+        </span>
+        <span class="sector__hov"><span>Explore Professional Services solutions</span></span>
+      </a>
+      <a class="sector rise-up" href="#">
+        <span class="sector__in">
+          <h3>Trades &amp; Home Services</h3>
+          <p class="sector__lede">From enquiry to quote to job, without losing anyone in a thread.</p>
+          <ul>
+            <li>Quote-to-job pipelines</li>
+            <li>Scheduling and dispatch</li>
+            <li>Photo reports and sign-offs</li>
+            <li>Deposits and payments</li>
+          </ul>
+        </span>
+        <span class="sector__hov"><span>Explore Trades and Home Services solutions</span></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="wrap who__door">
+    <article class="sector sector--door rise-up">
+      <div>
+        <h3>Not on this list?</h3>
+        <p class="sector__lede">The work underneath is the same. Tell us what is broken and we will tell you if we can fix it.</p>
+      </div>
+      <a class="btn btn--ghost" href="#start">Start Here</a>
+    </article>
+  </div>
+</section>
+
+<section class="sec route has-topo" id="process">
+  <div class="topo topo--open" aria-hidden="true">__TOPO_OPEN__</div>
+  <div class="route__runway" id="routeRunway">
+    <div class="route__pin">
+      <div class="wrap route__head">
+        <h2>Our path to building</h2>
+        <p>From the first call to still working a year later.</p>
+      </div>
+      <div class="wrap route__map" id="routeMap">
+        <svg class="route__svg" viewBox="0 0 1080 720" preserveAspectRatio="none" aria-hidden="true">
+          <path class="route__line" d="M340,96 C340,146.4 740,146.4 740,196.8 C740,247.2 340,247.2 340,297.6 C340,348 740,348 740,398.4 C740,448.8 340,448.8 340,499.2 C340,549.6 740,549.6 740,600"/>
+          <path class="route__draw" id="routeDraw" d="M340,96 C340,146.4 740,146.4 740,196.8 C740,247.2 340,247.2 340,297.6 C340,348 740,348 740,398.4 C740,448.8 340,448.8 340,499.2 C340,549.6 740,549.6 740,600"/>
+        <circle class="route__node" data-i="0" cx="340" cy="96" r="9"/>
+        <circle class="route__node" data-i="1" cx="740" cy="196.8" r="9"/>
+        <circle class="route__node" data-i="2" cx="340" cy="297.6" r="9"/>
+        <circle class="route__node" data-i="3" cx="740" cy="398.4" r="9"/>
+        <circle class="route__node" data-i="4" cx="340" cy="499.2" r="9"/>
+        <circle class="route__node" data-i="5" cx="740" cy="600" r="9"/>
+        </svg>
+      <div class="step step--l" data-i="0" style="top:13.33%">
+        <div class="step__n">01</div>
+        <h3>Survey</h3>
+        <p class="step__one">We learn how your business actually works before touching anything.</p>
+        <p class="step__you">You get a written picture of what is broken and what it is costing you.</p>
+      </div>
+      <div class="step step--r" data-i="1" style="top:27.33%">
+        <div class="step__n">02</div>
+        <h3>Mark the route</h3>
+        <p class="step__one">Scope, cost and plan, agreed before anything gets built.</p>
+        <p class="step__you">You get a fixed scope and a fixed price. No surprise invoices.</p>
+      </div>
+      <div class="step step--l" data-i="2" style="top:41.33%">
+        <div class="step__n">03</div>
+        <h3>Stack</h3>
+        <p class="step__one">We build it in the open, not behind a curtain.</p>
+        <p class="step__you">You get a live link from the first week, not a reveal at the end.</p>
+      </div>
+      <div class="step step--r" data-i="3" style="top:55.33%">
+        <div class="step__n">04</div>
+        <h3>Stress the stack</h3>
+        <p class="step__one">We try to break it before your customers do.</p>
+        <p class="step__you">You get something that works on their phone, not just on ours.</p>
+      </div>
+      <div class="step step--l" data-i="4" style="top:69.33%">
+        <div class="step__n">05</div>
+        <h3>Plant the marker</h3>
+        <p class="step__one">We launch it, and we are the ones awake during the cutover.</p>
+        <p class="step__you">You get no lost data and no downtime anyone notices.</p>
+      </div>
+      <div class="step step--r" data-i="5" style="top:83.33%">
+        <div class="step__n">06</div>
+        <h3>Keep the trail</h3>
+        <p class="step__one">We keep it running, and we keep people arriving.</p>
+        <p class="step__you">Most builds stop at launch. This is the step that makes the rest worth it.</p>
+      </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="close" id="start"><div class="wrap">
+  <h2>Nobody owns your tech. Let's fix that.</h2>
+  <p class="close__sub">One call, and someone finally does.</p>
+  <div class="close__cta">
+    <a class="btn" href="contact.html">Contact us</a>
+  </div>
+  <p class="close__fine">No pitch, no obligation. You leave with a written summary either way.<br>
+    Or email us at <a href="mailto:hello@cairnco.cloud">hello@cairnco.cloud</a></p>
+</div></section>
+
+</main>
+
+<!--==FOOT:START==-->
+<footer><div class="wrap foot">
+  <div class="foot__legal">
+    CAIRNCO HOLDINGS LLP<br>
+    UEN T26LL0983A<br>
+    hello@cairnco.cloud
+  </div>
+  <div class="foot__links">
+    <a href="index.html">Home</a>
+    <a href="landmarks.html">Landmarks</a>
+    <a href="kit.html">The Kit</a>
+    <a href="newsroom.html">Newsroom</a>
+    <a href="contact.html">Contact us</a>
+  </div>
+</div></footer>
+<!--==FOOT:END==-->
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var rises = document.querySelectorAll('.rise');
+  if(!reduce && 'IntersectionObserver' in window){
+    var ro = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('is-in'); ro.unobserve(e.target); } });
+    },{rootMargin:'0px 0px -8% 0px',threshold:.05});
+    rises.forEach(function(el){ ro.observe(el); });
+  } else {
+    rises.forEach(function(el){ el.classList.add('is-in'); });
+  }
+})();
+
+/* ---- hero: a live contour field. The cursor raises a summit; the ground
+        drifts slowly on its own. Marching squares over a scalar field,
+        recomputed every frame, so the lines genuinely bend rather than move. ---- */
+(function(){
+  var cv=document.getElementById('heroField'), hero=document.getElementById('hero');
+  if(!cv||!hero) return;
+  var ctx=cv.getContext('2d');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var noHover=window.matchMedia('(hover: none)').matches;
+
+  var GW=120, GH=68;            // sampling grid
+  var BW=GW+72, BH=GH+48;       // larger base field; we read a drifting window of it
+  var base=new Float32Array(BW*BH);
+  var fld=new Float32Array(GW*GH);
+  var LEVELS=22, AMP=2.35, PR=7.4;   // summit height and radius, in grid units
+
+  (function buildBase(){
+    var s=20260912, peaks=[];
+    function rnd(){ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; }
+    for(var i=0;i<26;i++) peaks.push([rnd()*BW, rnd()*BH, 6+rnd()*20, 5+rnd()*15, rnd()*2-1]);
+    for(var y=0;y<BH;y++){
+      for(var x=0;x<BW;x++){
+        var v=0;
+        for(var p=0;p<peaks.length;p++){
+          var q=peaks[p], dx=(x-q[0])/q[2], dy=(y-q[1])/q[3];
+          v+=q[4]*Math.exp(-(dx*dx+dy*dy)*0.5);
+        }
+        base[y*BW+x]=v;
+      }
+    }
+  })();
+
+  var W=0,H=0,DPR=1;
+  function resize(){
+    var r=hero.getBoundingClientRect();
+    W=Math.max(1,Math.round(r.width)); H=Math.max(1,Math.round(r.height));
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    cv.width=W*DPR; cv.height=H*DPR;
+    cv.style.width=W+'px'; cv.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  /* pointer position in grid space; starts just right of centre */
+  var pgx=GW*0.66, pgy=GH*0.5, tgx=pgx, tgy=pgy;
+  hero.addEventListener('pointermove',function(e){
+    var r=hero.getBoundingClientRect();
+    tgx=(e.clientX-r.left)/r.width*(GW-1);
+    tgy=(e.clientY-r.top)/r.height*(GH-1);
+  },{passive:true});
+
+  function sampleBase(ox,oy){
+    for(var y=0;y<GH;y++){
+      var by=y+oy, y0=by|0, fy=by-y0;
+      if(y0<0)y0=0; if(y0>BH-2)y0=BH-2;
+      var r0=y0*BW, r1=r0+BW;
+      for(var x=0;x<GW;x++){
+        var bx=x+ox, x0=bx|0, fx=bx-x0;
+        if(x0<0)x0=0; if(x0>BW-2)x0=BW-2;
+        var a=base[r0+x0],b=base[r0+x0+1],c=base[r1+x0],d=base[r1+x0+1];
+        fld[y*GW+x]=(a+(b-a)*fx)+((c+(d-c)*fx)-(a+(b-a)*fx))*fy;
+      }
+    }
+  }
+  function addSummit(cx,cy){
+    for(var y=0;y<GH;y++){
+      var dy=(y-cy)/PR, dy2=dy*dy, row=y*GW;
+      for(var x=0;x<GW;x++){
+        var dx=(x-cx)/PR;
+        fld[row+x]+=AMP*Math.exp(-(dx*dx+dy2)*0.5);
+      }
+    }
+  }
+
+  /* marching squares, linear interpolation on the cell edges */
+  var sx,sy;
+  function trace(lv){
+    var cell=[0,0,0,0];
+    for(var y=0;y<GH-1;y++){
+      for(var x=0;x<GW-1;x++){
+        var i=y*GW+x;
+        var tl=fld[i], tr=fld[i+1], bl=fld[i+GW], br=fld[i+GW+1];
+        var k=(tl>lv?8:0)|(tr>lv?4:0)|(br>lv?2:0)|(bl>lv?1:0);
+        if(k===0||k===15) continue;
+        var X=x*sx, Y=y*sy;
+        var T=[X+sx*(lv-tl)/(tr-tl), Y];
+        var R=[X+sx, Y+sy*(lv-tr)/(br-tr)];
+        var B=[X+sx*(lv-bl)/(br-bl), Y+sy];
+        var L=[X, Y+sy*(lv-tl)/(bl-tl)];
+        switch(k){
+          case 1: case 14: seg(L,B); break;
+          case 2: case 13: seg(B,R); break;
+          case 3: case 12: seg(L,R); break;
+          case 4: case 11: seg(T,R); break;
+          case 5: seg(L,T); seg(B,R); break;
+          case 6: case 9: seg(T,B); break;
+          case 7: case 8: seg(L,T); break;
+          case 10: seg(T,R); seg(L,B); break;
+        }
+      }
+    }
+  }
+  function seg(a,b){ ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); }
+
+  var drift=0;
+  function draw(t){
+    sx=W/(GW-1); sy=H/(GH-1);
+    drift=t*0.000075;
+    sampleBase(36+Math.sin(drift)*30, 24+Math.cos(drift*0.83)*18);
+    pgx+=(tgx-pgx)*0.3; pgy+=(tgy-pgy)*0.3;
+    addSummit(pgx,pgy);
+
+    ctx.clearRect(0,0,W,H);
+    ctx.lineCap='round';
+    var lo=-1.15, hi=2.25;
+    for(var n=0;n<LEVELS;n++){
+      var lv=lo+(hi-lo)*(n/(LEVELS-1));
+      var major=(n%4===0);
+      ctx.beginPath();
+      ctx.strokeStyle= major ? 'rgba(61,90,80,.46)' : 'rgba(61,90,80,.30)';
+      ctx.lineWidth= major ? 1.5 : 1;
+      trace(lv);
+      ctx.stroke();
+    }
+  }
+
+  function frame(t){ draw(t); requestAnimationFrame(frame); }
+
+  window.addEventListener('resize',function(){ resize(); if(reduce||noHover) draw(0); },{passive:true});
+  resize();
+  if(reduce||noHover){ draw(0); }     /* one still frame: no loop, no battery cost */
+  else { requestAnimationFrame(frame); }
+})();
+
+/* ---- who we build for: four layers, each rising when the scroll reaches it.
+        heading, then each row of cards as a pair, then the door. a layer that
+        has risen stays risen, so scrolling back up and down changes nothing. ---- */
+(function(){
+  var sec=document.getElementById('work'); if(!sec) return;
+  var items=[].slice.call(sec.querySelectorAll('.rise-up'));
+  if(!items.length) return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    sec.classList.add('is-up'); return;
+  }
+  sec.classList.add('js');
+
+  /* on a phone the row scrolls sideways and the door belongs at the end of it,
+     so it moves into the scroller and back out again with the breakpoint. */
+  var row=sec.querySelector('.sectors'),
+      dock=sec.querySelector('.who__door'),
+      door=sec.querySelector('.sector--door');
+  function placeDoor(){
+    if(!row||!dock||!door) return;
+    var narrow=window.innerWidth<=700;
+    if(narrow && door.parentNode!==row) row.appendChild(door);
+    else if(!narrow && door.parentNode!==dock) dock.appendChild(door);
+  }
+  placeDoor();
+  window.addEventListener('resize',placeDoor,{passive:true});
+
+  var layers=[[items[0]], items.slice(1,3), items.slice(3,5), items.slice(5)]
+    .filter(function(l){ return l.length; });
+  /* the pair in a row reads as one beat, so the offset stays well under the
+     ~100ms at which two events start to look separate */
+  layers.forEach(function(l){
+    l.forEach(function(el,j){ el.style.transitionDelay=(j*55)+'ms'; });
+  });
+
+  /* the layers are not evenly spaced down the page, so each gets its own
+     trigger line. that turns uneven gaps into four beats of roughly equal
+     scroll. the loop is strictly in order, so a layer can never jump ahead. */
+  var LINES=[.85,.72,.78,.90];
+  var next=0, ticking=false;
+  function check(){
+    ticking=false;
+    while(next<layers.length &&
+          layers[next][0].getBoundingClientRect().top < window.innerHeight*(LINES[next]||.85)){
+      layers[next].forEach(function(el){ el.classList.add('is-in'); });
+      next++;
+    }
+    if(next>=layers.length){ window.removeEventListener('scroll',onScroll); }
+  }
+  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(check); } }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll,{passive:true});
+  check();
+})();
+
+/* ---- hero hint sits level with the second CTA button ---- */
+(function(){
+  var map=document.querySelector('.hero__map'),
+      hint=document.querySelector('.hero__hint'),
+      btns=document.querySelectorAll('.hero__cta .btn');
+  if(!map||!hint||btns.length<2) return;
+  function place(){
+    var m=map.getBoundingClientRect(), b=btns[1].getBoundingClientRect();
+    if(!m.height) return;
+    hint.style.setProperty('--hintY', (((b.top+b.height/2)-m.top)/m.height*100).toFixed(2)+'%');
+  }
+  window.addEventListener('resize',place,{passive:true});
+  window.addEventListener('load',place);
+  place();
+})();
+
+__NAV_JS__
+
+/* ---- the route: the path draws itself and the steps light in sequence ---- */
+(function(){
+  var sec=document.getElementById('process');
+  var runway=document.getElementById('routeRunway');
+  var draw=document.getElementById('routeDraw');
+  if(!sec||!runway||!draw) return;
+  var nodes=[].slice.call(sec.querySelectorAll('.route__node'));
+  var steps=[].slice.call(sec.querySelectorAll('.step'));
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* the phone layout is a vertical rail, driven by each step crossing the
+     middle of the screen. it only ever moves forward, like the desktop path. */
+  function railMode(){
+    var map=document.getElementById('routeMap');
+    var fill=document.createElement('div');
+    fill.className='route__rail'; map.appendChild(fill);
+    var reached=-1, t=false;
+    function tick(){
+      t=false;
+      var mid=window.innerHeight*0.5, hit=reached;
+      for(var i=steps.length-1;i>=0;i--){
+        if(steps[i].getBoundingClientRect().top < mid){ hit=Math.max(hit,i); break; }
+      }
+      if(hit<=reached) return;
+      for(var k=reached+1;k<=hit;k++){ steps[k].classList.add('is-lit'); }
+      reached=hit;
+      var first=steps[0].getBoundingClientRect(), last=steps[reached].getBoundingClientRect();
+      fill.style.height=Math.max(0,(last.top-first.top)+12)+'px';
+      if(reached>=steps.length-1) window.removeEventListener('scroll',onS);
+    }
+    function onS(){ if(!t){ t=true; requestAnimationFrame(tick); } }
+    window.addEventListener('scroll',onS,{passive:true});
+    window.addEventListener('resize',onS,{passive:true});
+    tick();
+  }
+
+  if(reduce || !steps.length){ sec.classList.add('is-static'); return; }
+  if(window.innerWidth < 900){ sec.classList.add('is-static'); railMode(); return; }
+  sec.classList.add('js');
+
+  var len=draw.getTotalLength();
+  draw.style.strokeDasharray=len+' '+len;
+  draw.style.strokeDashoffset=len;
+
+  /* the path only ever moves forward. scrolling back up changes nothing:
+     the furthest point reached is the state, so there is no reset to pay for. */
+  var last=-1, ticking=false, reach=-1, done=false;
+
+  function paint(){
+    draw.style.strokeDashoffset=(len*(1-reach)).toFixed(1);
+    var now=Math.min(steps.length-1, Math.floor(reach*steps.length*0.999));
+    if(now===last) return;
+    for(var i=0;i<steps.length;i++){
+      if(i<=now){ steps[i].classList.add('is-lit'); nodes[i].classList.add('is-lit'); }
+      steps[i].classList.toggle('is-now',i===now);
+      nodes[i].classList.toggle('is-now',i===now);
+    }
+    last=now;
+  }
+  function place(){
+    ticking=false;
+    if(done) return;
+    var r=runway.getBoundingClientRect();
+    var run=runway.offsetHeight - window.innerHeight;
+    if(run<=0) return;
+    var p=Math.min(1,Math.max(0,(-r.top)/run));
+    if(p<=reach) return;
+    reach=p;
+    paint();
+    if(reach>=0.999){ done=true; window.removeEventListener('scroll',onScroll); }
+  }
+  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(place); } }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',function(){
+    if(window.innerWidth<900){ sec.classList.add('is-static'); }
+    else { sec.classList.remove('is-static'); paint(); place(); }
+  },{passive:true});
+
+  place();
+})();
+
+/* ---- the issue: a wheel of one-star reviews, driven by scroll ---- */
+(function(){
+  var sec=document.getElementById('problem');
+  var runway=document.getElementById('issueRunway');
+  var stage=document.getElementById('revStage');
+  if(!sec||!runway||!stage) return;
+  var cards=[].slice.call(stage.querySelectorAll('.rev'));
+  var num=document.getElementById('revNum');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* the wheel runs on a phone as well now: only reduced motion falls back */
+  if(reduce || !cards.length){
+    sec.classList.add('is-static');
+    return;
+  }
+
+  var ticking=false, manual=false, idx=0;
+
+  function render(prog){
+    for(var i=0;i<cards.length;i++){
+      var c=cards[i], o=i-prog, a=Math.abs(o);
+      if(a>2.6){ c.style.opacity='0'; c.style.visibility='hidden'; continue; }
+      c.style.visibility='visible';
+      c.style.opacity=(a<0.5 ? 1 : Math.max(0,1-(a-0.5)*0.58)).toFixed(3);
+      c.style.zIndex=String(1000-Math.round(a*100));
+      c.style.transform='translateY('+(o*-70).toFixed(1)+'px) translateZ('+(-a*120).toFixed(0)+'px) rotateX('+(o*32).toFixed(1)+'deg)';
+    }
+    if(num){ var n=Math.round(prog)+1; num.textContent=(n<10?'0':'')+n; }
+  }
+
+  /* the scroll driver runs for exactly one pass. once the runway has been
+     scrolled through, it detaches for good and the chevrons take over, so
+     nothing is recomputed on every later scroll of the page. */
+  function handOff(){
+    if(manual) return;
+    manual=true;
+    window.removeEventListener('scroll',onScroll);
+    idx=cards.length-1;
+    sec.classList.add('is-manual');
+    render(idx);
+  }
+  function step(d){
+    idx=(idx+d+cards.length)%cards.length;   /* wraps at both ends */
+    render(idx);
+  }
+
+  function place(){
+    ticking=false;
+    if(manual) return;
+    var r=runway.getBoundingClientRect();
+    var run=runway.offsetHeight - window.innerHeight;
+    if(run<=0) return;
+    var p=Math.min(1,Math.max(0,(-r.top)/run));
+    render(p*(cards.length-1));
+    if(p>=0.999){ handOff(); }
+  }
+  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(place); } }
+  window.addEventListener('scroll',onScroll,{passive:true});
+
+  var up=document.getElementById('revUp'), dn=document.getElementById('revDn');
+  if(up) up.addEventListener('click',function(){ step(-1); });
+  if(dn) dn.addEventListener('click',function(){ step(1); });
+
+  window.addEventListener('resize',function(){
+    if(manual){ render(idx); } else { place(); }
+  },{passive:true});
+  place();
+})();
+</script>

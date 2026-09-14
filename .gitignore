@@ -1,0 +1,22 @@
+# The built HTML at the root IS committed on purpose. Cloudflare Pages deploys
+# those files directly, so the repo doubles as the deployable artifact and a
+# fresh clone can be uploaded without running anything.
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+
+# spent one-off helper, already run
+DELETE-OLD-FILES.bat
+
+# local scratch
+*.log
+/tmp/
