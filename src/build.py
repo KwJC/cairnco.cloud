@@ -72,11 +72,19 @@ def region(text, tag, comment=False):
     return m.group(1).strip()
 
 
+# Wrangler serves this directory and nothing else, which is what keeps src/
+# and the docs off the public site. The same pages are also written to the
+# repo root so the site can still be opened straight off disk.
+DIST = None
+
+
 def finish(path, text):
     left = re.findall(r'__[A-Z_]+__', text)
     if left:
         sys.exit('unfilled placeholder(s) in %s: %s' % (path.name, ', '.join(sorted(set(left)))))
     path.write_text(text, encoding='utf-8')
+    if DIST is not None:
+        (DIST / path.name).write_text(text, encoding='utf-8')
     print('  %-16s %6d bytes' % (path.name, len(text)))
 
 
@@ -116,6 +124,9 @@ def fill(text, extra=None):
         text = text.replace(k, v)
     return text
 
+
+DIST = ROOT / 'dist'
+DIST.mkdir(exist_ok=True)
 
 print('building cairnco.cloud')
 _missing = [s for s, _ in SOCIAL_ICONS if s not in _found]

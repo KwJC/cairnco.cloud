@@ -20,3 +20,16 @@ DELETE-OLD-FILES.bat
 # local scratch
 *.log
 /tmp/
+
+# Cloudflare deploy. The token lives in .env and must never be committed.
+.env
+.env.*
+!.env.example
+
+# Wrangler
+node_modules/
+.wrangler/
+package-lock.json
+
+# Worker publish directory, regenerate with: python src/build.py
+dist/

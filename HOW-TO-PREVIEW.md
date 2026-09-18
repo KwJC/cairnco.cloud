@@ -128,7 +128,53 @@ python build.py      # inject them into the pages
 `contours.py` needs `numpy` and `matplotlib`. The hero field needs neither: it
 is drawn live in the browser with canvas.
 
-## Deploying
+## Deploying to Cloudflare Workers
+
+The site runs on Cloudflare Workers with Static Assets, deployed with Wrangler.
+`wrangler.jsonc` at the root holds the whole configuration.
+
+**One-time setup, in this folder:**
+
+```
+npm install -D wrangler
+```
+
+Then create a file called `.env` next to `wrangler.jsonc` containing one line:
+
+```
+CLOUDFLARE_API_TOKEN=your-token-here
+```
+
+The token is created in the Cloudflare dashboard with the **Edit Cloudflare
+Workers** preset. `.env` is in `.gitignore` and must never be committed.
+
+**Every deploy:**
+
+```
+python src/build.py
+npx wrangler deploy
+```
+
+`build.py` writes the five pages to the root (for opening off disk) and mirrors
+them into `dist/`. Wrangler publishes **only `dist/`**, which is what keeps
+`src/`, `build.py` and these docs off the public site. `dist/` is gitignored, so
+always run the build before deploying.
+
+To check the configuration without publishing:
+
+```
+npx wrangler deploy --dry-run
+```
+
+The custom domain `cairnco.cloud` is declared in `wrangler.jsonc` as a Custom
+Domain, so Cloudflare creates the DNS record and the certificate itself. Do not
+add a `www` record unless you decide you want one; it is deliberately not there.
+
+### The old route: Cloudflare Pages
+
+Pages is the alternative if Workers is ever a problem. It needs no build
+command and a build output directory of `/`.
+
 
 Cloudflare Pages, Upload assets. Drop in all five: **`index.html`,
 `contact.html`, `landmarks.html`, `kit.html`, `newsroom.html`**. No build

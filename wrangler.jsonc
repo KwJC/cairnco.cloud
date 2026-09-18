@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cairnco",
+  "compatibility_date": "2026-09-16",
+
+  // Only ./dist is published. The templates, build.py and the docs live
+  // outside it and never reach the public site.
+  // Regenerate it with:  python src/build.py
+  "assets": {
+    "directory": "./dist"
+  },
+
+  // A Custom Domain, not a route: this Worker IS the origin, there is no
+  // server behind it. Cloudflare creates the DNS record and the certificate.
+  "routes": [
+    {
+      "pattern": "cairnco.cloud",
+      "custom_domain": true
+    }
+  ]
+}

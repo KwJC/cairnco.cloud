@@ -6,13 +6,38 @@
 
   function reveal(){ nav.classList.remove('is-hidden'); }
 
+  /* Home only. The header ships with no surface so the hero terrain runs behind
+     it. Two rules combine:
+
+       going down from the top   the surface stays at 0 until the header has
+                                 hidden, so it is never seen arriving
+       coming back up            the surface is a direct function of how far
+                                 from the top you are, over the last 100px
+
+     That second rule is the whole point. Nothing is timed, so there is no
+     duration to lag behind the scroll and no threshold to snap at: the fade IS
+     the visitor's scroll, played back at whatever speed they move. */
+  var home=document.querySelector('.page--home');
+  var FADE=100, TOP=2, solid=false, menuOpen=false;
+
+  function surface(y){
+    if(!home) return;
+    if(y<=TOP) solid=false;              /* back at the top, start bare again */
+    var v = menuOpen ? 1 : (solid ? Math.min(1, y/FADE) : 0);
+    nav.style.setProperty('--nav-surface', v.toFixed(3));
+  }
+
   function upd(){
     var y=window.scrollY;
     nav.classList.toggle('is-stuck', y>10);
-    if(y>last && y>160){ nav.classList.add('is-hidden'); }
+    if(y>last && y>160){ nav.classList.add('is-hidden'); solid=true; }
     else if(y<last-4){ reveal(); }
+    surface(y);
     last=y; ticking=false;
   }
+  /* a restored scroll position must not leave the links bare over content */
+  if(home && window.scrollY>TOP) solid=true;
+  surface(window.scrollY);
   window.addEventListener('scroll',function(){
     if(!ticking){ ticking=true; requestAnimationFrame(upd); }
   },{passive:true});
@@ -38,6 +63,8 @@
       nav.classList.toggle('is-open',on);
       tog.setAttribute('aria-expanded',on?'true':'false');
       if(on) reveal();
+      /* the panel must never open over bare terrain */
+      menuOpen=on; surface(window.scrollY);
     }
     tog.addEventListener('click',function(e){
       e.stopPropagation();

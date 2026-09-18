@@ -98,7 +98,10 @@ a{color:inherit}
 }
 .btn:hover{background:var(--rust);border-color:var(--rust)}
 .btn:active{transform:scale(.975)}
-.btn--ghost{background:transparent;color:var(--teal-deep);border:1px solid rgba(61,90,80,.38)}
+/* solid, not transparent: over the terrain the contour lines used to run
+   straight through the button and it stopped reading as a surface */
+.btn--ghost{background:var(--paper);color:var(--teal-deep);
+  border:1px solid rgba(61,90,80,.38)}
 .btn--ghost:hover{background:var(--rust);border-color:var(--rust);color:var(--paper-raised)}
 a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:3px;border-radius:4px}
 
@@ -167,16 +170,62 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 }
 /*==SHELL-A:END==*/
 
+/* ---------- home only: the header has no surface of its own at the top -------
+   The page stops reserving --navh and the hero reserves it instead, so the
+   terrain canvas starts at y=0 and genuinely runs behind the header rather than
+   beginning below it. Total height from the top of the viewport is unchanged.
+
+   The cream is put back by script ONLY while the header is hidden, so the swap
+   is never seen: the solid bar first appears as it slides back in on an upward
+   scroll, and it fades back to bare when you reach the very top again.
+   Scoped to .page--home, so the other four pages keep the ordinary bar. */
+.page--home{padding-top:0}
+.page--home .hero{padding-top:calc(var(--navh) + var(--s3))}
+
+/* The surface is its own layer, not the nav's background, for two reasons.
+   background-color is not compositable, so fading it repaints the header every
+   frame; opacity on a separate layer runs on the GPU. And it lets the surface
+   be driven continuously by scroll position instead of switched by a class.
+   There is deliberately NO transition on it: the opacity tracks the scroll 1:1,
+   so the fade is the visitor's own movement and can never lag or snap. */
+.page--home .nav{background:transparent;border-bottom-color:transparent}
+.page--home .nav::before{content:"";position:absolute;inset:0;z-index:0;
+  background:var(--paper);border-bottom:1px solid rgba(61,90,80,.20);
+  opacity:var(--nav-surface,0);will-change:opacity;pointer-events:none}
+/* the shadow belongs to the surface, so it fades with it */
+.page--home .nav.is-stuck{box-shadow:none}
+.page--home .nav.is-stuck::before{box-shadow:0 10px 26px rgba(31,42,38,.07)}
+/* the bar's own content has to sit above its surface */
+.page--home .nav__in{position:relative;z-index:1}
+
 /* ---------- hero ---------- */
 .hero{padding-block:var(--s3) var(--s2);position:relative;overflow:hidden;isolation:isolate}
-.hero__grid{display:grid;grid-template-columns:minmax(0,46%) minmax(0,54%);gap:var(--s4);align-items:center;
+.hero__grid{display:grid;grid-template-columns:minmax(0,50%) minmax(0,50%);gap:var(--s4);align-items:center;
   position:relative;z-index:2;min-height:calc(79vh - var(--navh))}
 .hero__text{position:relative}
 .hero__text::before{content:"";position:absolute;inset:-56px -140px -48px -48px;z-index:-1;
-  background:radial-gradient(ellipse 76% 82% at 32% 50%,var(--paper) 40%,rgba(237,230,216,.86) 62%,rgba(237,230,216,0) 100%)}
-.hero h1{font-size:clamp(2.4rem,4.8vw,4rem);max-width:none;letter-spacing:-.03em}
+  /* Peak 78%, never solid. It used to hold var(--paper) at full opacity for the
+     first 40% of the radius, which killed the contours dead on the left and made
+     the text look boxed. Starting the fade at 18% and capping the peak lets the
+     terrain read faintly all the way through while the text stays legible.
+     The phone override below already worked this way at 62%. */
+  background:radial-gradient(ellipse 80% 86% at 32% 50%,
+    rgba(237,230,216,.78) 18%,rgba(237,230,216,.60) 58%,rgba(237,230,216,0) 100%)}
+/* 3.2rem, not 4rem: at 4rem the longest slide line needed 624px in a 475px
+   column, so every headline broke mid-phrase. The phone floor is unchanged. */
+.hero h1{font-size:clamp(2.4rem,3.6vw,3rem);max-width:none;letter-spacing:-.03em}
 .hero h1 em{font-style:normal;color:var(--teal)}
+/* the line stays teal, one word in it carries the rust */
+.hero__key{color:var(--rust)}
 .hero__sub{margin-top:var(--s3);font-size:clamp(1.08rem,1.6vw,1.34rem);max-width:42ch;color:var(--body);line-height:1.55}
+/* Only the teal second line moves. "You run the business." is permanent, so the
+   headline is always two lines and the caption is fixed: nothing below can shift
+   and no height lock is needed. inline-block because transforms do not apply to
+   an inline element. Every result is verified to fit one line at 1440, 768 and
+   390, so a wrap can never make it three lines. */
+.hero__result{display:inline-block;will-change:opacity,transform;
+  transition:opacity .28s var(--ease),transform .32s var(--ease)}
+
 .hero__cta{display:flex;gap:var(--s3);margin-top:var(--s5);flex-wrap:wrap}
 .hero__cta .btn{font-size:1.06rem;padding:.92em 1.7em;border-radius:8px}
 
@@ -233,9 +282,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 
 /* ---------- the issue: what we keep finding + the review wheel ---------- */
 .issue{position:relative;padding-block:0}
-.issue__runway{position:relative;min-height:calc(58vh + 740px)}
-.issue__pin{position:sticky;top:var(--navh);min-height:calc(100vh - var(--navh));
-  display:flex;align-items:center}
+/* The wheel shuffles on a timer now, so there is no runway to scroll through
+   and nothing is pinned. Desktop top padding is set in the min-width:901px
+   block, where the arithmetic is explained. */
+.issue__runway{position:relative}
+.issue__pin{padding-block:var(--s6)}
 .issue__grid{display:grid;grid-template-columns:minmax(0,44%) minmax(0,56%);
   column-gap:64px;row-gap:var(--s4);align-items:center;width:100%}
 .issue__copy h2{font-size:clamp(2.1rem,4.1vw,3.1rem)}
@@ -244,17 +295,27 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   font-size:clamp(1.36rem,2.35vw,1.82rem);color:var(--ink);line-height:1.32;max-width:21ch;
   border-left:3px solid var(--rust);padding-left:1.1rem}
 
-.reviews{position:relative}
+/* The receded cards are rotated and pushed back in Z, so the painted stack
+   spills out of .stage by a measured 15px above and 22px below, the same at
+   every wheel position. The label and the counter have to clear that spill, not
+   the box, so each margin is the spill plus one shared breathing gap. Without
+   this the label overlapped the top card by 5px. */
+.reviews{position:relative;--wheel-gap:30px;--wheel-spill-t:15px;--wheel-spill-b:22px;
+  /* one step of the wheel. the only number to touch to change its pace. */
+  --rev-step:440ms}
 .reviews__wheel{display:flex;align-items:stretch;gap:14px}
 .reviews__wheel .stage{flex:1 1 auto;min-width:0}
 .reviews__label{font-family:var(--mono);font-size:.73rem;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:block;text-align:center;
+  text-transform:uppercase;color:var(--muted);display:block;text-align:center;
+  margin-bottom:calc(var(--wheel-gap) + var(--wheel-spill-t));
   position:relative;z-index:2}
 .stage{position:relative;height:262px;perspective:1150px;perspective-origin:50% 44%}
 .rev{position:absolute;left:0;right:0;top:50%;margin-top:-114px;
   background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);border-radius:15px;
   padding:26px 28px;box-shadow:0 16px 36px rgba(31,42,38,.11);
-  transform-origin:50% 50%;will-change:transform,opacity;backface-visibility:hidden}
+  transform-origin:50% 50%;will-change:transform,opacity;backface-visibility:hidden;
+  transition:transform var(--rev-step) var(--ease),
+             opacity calc(var(--rev-step) * .73) var(--ease)}
 .rev__row{display:flex;align-items:center;gap:12px}
 .rev__avatar{width:44px;height:44px;border-radius:50%;background:var(--paper-deep);flex:none;
   overflow:hidden;display:grid;place-items:center}
@@ -267,28 +328,17 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .rev__biz{margin-top:15px;padding-top:12px;border-top:1px solid rgba(61,90,80,.14);
   font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;color:var(--muted);
   display:flex;align-items:center;gap:9px}
-.reviews__count{margin-top:24px;font-family:var(--mono);font-size:.8rem;color:var(--muted);
+.reviews__count{margin-top:calc(var(--wheel-gap) + var(--wheel-spill-b));
+  font-family:var(--mono);font-size:.8rem;color:var(--muted);
   font-variant-numeric:tabular-nums;text-align:center}
 
-/* the wheel hands over to chevrons once it has been scrolled through once.
-   the column is always reserved, so nothing reflows at the handover. */
-.reviews__nav{flex:0 0 38px;display:flex;flex-direction:column;justify-content:space-between;
-  align-items:center;padding-block:6px;opacity:0;pointer-events:none;
-  transition:opacity .45s var(--ease)}
-.issue.is-manual .reviews__nav{opacity:1;pointer-events:auto}
-.chev{appearance:none;background:none;border:0;padding:6px 4px;margin:0;cursor:pointer;
-  color:var(--teal);line-height:0;transition:color .2s var(--ease),transform .2s var(--ease)}
-.chev svg{width:22px;height:13px;display:block;fill:none;stroke:currentColor;
-  stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.chev:hover,.chev:focus-visible{color:var(--rust);transform:scale(1.18)}
-.chev:focus-visible{outline:2px solid var(--rust);outline-offset:3px;border-radius:4px}
-.chev:active{transform:scale(.94)}
-.issue.is-manual .rev{transition:transform .52s var(--ease),opacity .38s var(--ease)}
+/* With the chevron column gone the wheel is the only child of .reviews, so the
+   label and the counter, both centred on .reviews, now centre on the stage
+   itself rather than on stage + gap + a 38px button rail. */
 
 /* on a phone the copy and the wheel share one screen: the column stacks and the
    stack itself shrinks, since the copy is staying whole */
 @media (max-width:900px){
-  .issue__runway{min-height:calc(58vh + 620px)}
   .issue__grid{grid-template-columns:1fr;row-gap:clamp(14px,2.4vh,26px);
     align-content:center}
   .issue__copy h2{font-size:clamp(1.6rem,5.4vw,2.1rem)}
@@ -319,7 +369,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .issue.is-static .rev{position:relative;top:auto;margin-top:0;
   transform:none !important;opacity:1 !important;visibility:visible !important}
 .issue.is-static .reviews__count{display:none}
-.issue.is-static .reviews__nav{display:none}
 .issue.is-static .reviews__wheel{display:block}
 .issue.is-static .reviews__label{margin-bottom:var(--s3)}
 
@@ -571,12 +620,33 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   *{animation:none !important;transition:none !important}
   .rise{transform:none}
 }
+/* ---------- desktop vertical rhythm ----------
+   Measured at 1440x900: the pinned issue stage held ~470px of content in an
+   820px well, and the who screen reserved a full viewport for ~690px, so both
+   floated their content in deep cream. The stage and its runway shrink by the
+   SAME 200px, which leaves the wheel's scroll travel at 442px exactly as it
+   was, so the wheel is untouched. The who screen stops reserving a screen it
+   never fills, and the door follows the cards at one spacing step.
+   Narrow widths are handled by the max-width:900px rules above and are left
+   alone on purpose; the phone pass is a separate job. */
+@media (min-width:901px){
+  /* The hero is driven by 79vh, so the strip of this section left showing at
+     scroll 0 is 100vh - navh - (79vh - navh + 104px), which is 21vh - 104px.
+     Measured: 64px at 800 tall, 85px at 900, 149px at 1200. The top padding has
+     to stay clear of that strip or the heading is readable from the hero, so it
+     tracks the same term and keeps 20px of empty cream in hand at every height.
+     The floor covers short viewports, where the strip is tiny. */
+  .issue__pin{padding-block:max(84px, 21vh - 84px) var(--s6)}
+
+  .who__screen{min-height:0;padding-block:var(--s6) 0}
+  .who__door{margin-top:var(--s4);padding-block:0 var(--s6)}
+}
 </style>
 
 <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
 <linearGradient id="stone0" x1=".22" y1="0" x2=".72" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone1" x1=".05" y1=".12" x2=".9" y2=".86"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone2" x1=".34" y1="0" x2=".56" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone3" x1=".12" y1="0" x2=".95" y2=".7"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient></defs></svg>
 
-<div class="page">
+<div class="page page--home">
 <!--==NAV:START==-->
 <header class="nav"><div class="wrap nav__in">
   <a class="mark" href="index.html">Cairn<span>Co</span></a>
@@ -599,9 +669,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   <canvas class="terrain" id="heroField" aria-hidden="true"></canvas>
   <div class="wrap hero__grid">
     <div class="hero__text">
-      <h1>You run the business.<br><em>We run the tech.</em></h1>
-      <p class="hero__sub">Technology that quietly works, so you can stop thinking about it. Built, launched, and kept running.</p>
-      <p class="hero__svcs">Websites <b>&middot;</b> Internal Tools <b>&middot;</b> AI Workflows <b>&middot;</b> Automation <b>&middot;</b> Cloud</p>
+      <h1>You run the business.<br><em class="hero__result" id="heroResult">We make it <span class="hero__key">seen</span>.</em></h1>
+      <!-- hard&nbsp;to&nbsp;beat stays one unit: without it the line breaks after
+     "hard to" and leaves "beat." alone as a widow. -->
+      <p class="hero__sub">The tech department that makes you hard&nbsp;to&nbsp;beat.</p>
+      <p class="hero__svcs">Websites <b>&middot;</b> SEO &amp; AEO <b>&middot;</b> Marketing <b>&middot;</b> Internal Tools <b>&middot;</b> AI Workflows <b>&middot;</b> Automation <b>&middot;</b> Cloud</p>
       <div class="hero__cta">
         <a class="btn" href="contact.html">Book a discovery call</a>
         <a class="btn btn--ghost" href="#work">See what we build</a>
@@ -612,6 +684,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
       <button class="pin" type="button" style="--x:45%;--y:34%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Internal Tools</span></button>
       <button class="pin" type="button" style="--x:63%;--y:57%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">AI Workflows</span></button>
       <button class="pin" type="button" style="--x:81%;--y:26%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Automation</span></button>
+      <button class="pin" type="button" style="--x:18%;--y:45%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">SEO &amp; AEO</span></button>
+      <button class="pin" type="button" style="--x:52%;--y:86%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Marketing</span></button>
       <p class="hero__hint">Hover a pin to see what we build</p>
       <button class="pin" type="button" style="--x:88%;--y:74%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Cloud</span></button>
     </div>
@@ -712,10 +786,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
               <p class="rev__biz">Reviewed: a business like yours</p>
             </article>
           </div>
-            <div class="reviews__nav" id="revNav">
-              <button type="button" class="chev chev--up" id="revUp" aria-label="Previous fragment"><svg viewBox="0 0 22 13" aria-hidden="true"><path d="M2 11 L11 2 L20 11"/></svg></button>
-              <button type="button" class="chev chev--dn" id="revDn" aria-label="Next fragment"><svg viewBox="0 0 22 13" aria-hidden="true"><path d="M2 2 L11 11 L20 2"/></svg></button>
-            </div>
           </div>
           <p class="reviews__count"><span id="revNum">01</span> / 08</p>
         </div>
@@ -898,6 +968,81 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   } else {
     rises.forEach(function(el){ el.classList.add('is-in'); });
   }
+})();
+
+/* ---- hero: "You run the business." never moves. Only the teal line after it
+        rotates, through eight results. The first result ships in the markup, so
+        with JavaScript off, or under reduced motion, the hero is a normal static
+        hero that still reads correctly. ---- */
+(function(){
+  var el=document.getElementById('heroResult');
+  if(!el) return;
+
+  /* Order is deliberate: four market-facing results, then four capability ones.
+     Seen, found, chosen leads the customer journey; automate and AI show how;
+     kit and odds are the two shortest lines and land as the punch; scale closes
+     on the longest horizon. */
+  var RESULTS=[
+    { t:'We make it seen.',      k:'seen'     },
+    { t:'We find your buyers.',  k:'buyers'   },
+    { t:'We get you chosen.',    k:'chosen'   },
+    { t:'We automate the rest.', k:'automate' },
+    { t:'We put AI to work.',    k:'AI'       },
+    { t:'We kit you out.',       k:'kit'      },
+    { t:'We even the odds.',     k:'odds'     },
+    { t:'We build it to scale.', k:'scale'    }
+  ];
+
+  /* Built from text nodes and one span, never innerHTML. The keyword is the
+     word that carries the promise, so on three of the eight it sits mid-line
+     rather than at the end. */
+  function write(r){
+    while(el.firstChild) el.removeChild(el.firstChild);
+    var i=r.t.indexOf(r.k);
+    if(i<0){ el.appendChild(document.createTextNode(r.t)); return; }
+    el.appendChild(document.createTextNode(r.t.slice(0,i)));
+    var s=document.createElement('span');
+    s.className='hero__key';
+    s.textContent=r.k;
+    el.appendChild(s);
+    el.appendChild(document.createTextNode(r.t.slice(i+r.k.length)));
+  }
+  if(RESULTS.length<2) return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var idx=0, timer=null, held=false, HOLD=3000, FADE=280;
+
+  function paint(n){
+    el.style.opacity='0';
+    el.style.transform='translateY(-8px)';
+    setTimeout(function(){
+      write(RESULTS[n]);
+      el.style.transition='none';
+      el.style.transform='translateY(8px)';
+      void el.offsetHeight;          /* commit the jump before easing back */
+      el.style.transition='';
+      el.style.opacity='1';
+      el.style.transform='none';
+    },FADE);
+  }
+
+  function tick(){ idx=(idx+1)%RESULTS.length; paint(idx); }
+  function run(){ if(!timer && !held) timer=setInterval(tick,HOLD); }
+  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+
+  /* The terrain canvas fills the right half and tracks the cursor, so the hold
+     is scoped to the text column. Pausing on the whole section would stop the
+     rotation every time the pointer drifted toward the map. */
+  var zone=el.closest('.hero__text')||el;
+  zone.addEventListener('mouseenter',function(){ held=true; stop(); });
+  zone.addEventListener('mouseleave',function(){ held=false; run(); });
+  zone.addEventListener('focusin',function(){ held=true; stop(); });
+  zone.addEventListener('focusout',function(){ held=false; run(); });
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden) stop(); else run();
+  });
+
+  run();
 })();
 
 /* ---- hero: a live contour field. The cursor raises a summit; the ground
@@ -1093,10 +1238,30 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
       hint=document.querySelector('.hero__hint'),
       btns=document.querySelectorAll('.hero__cta .btn');
   if(!map||!hint||btns.length<2) return;
+  var pins=map.querySelectorAll('.pin');
+  /* The hint wants to sit level with the second button, but the text column and
+     the button row move with the headline, so that line can land straight on a
+     pin. Try the wanted position first, then alternate down and up in small
+     steps until the label is clear of every pin. */
+  function clashes(){
+    var h=hint.getBoundingClientRect(), i, r;
+    for(i=0;i<pins.length;i++){
+      r=pins[i].getBoundingClientRect();
+      if(r.left<h.right+10 && r.right>h.left-10 && r.top<h.bottom+10 && r.bottom>h.top-10) return true;
+    }
+    return false;
+  }
   function place(){
     var m=map.getBoundingClientRect(), b=btns[1].getBoundingClientRect();
     if(!m.height) return;
-    hint.style.setProperty('--hintY', (((b.top+b.height/2)-m.top)/m.height*100).toFixed(2)+'%');
+    var base=((b.top+b.height/2)-m.top)/m.height*100;
+    var step=1400/m.height, tries=[base], k, y;
+    for(k=1;k<=12;k++){ tries.push(base+k*step); tries.push(base-k*step); }
+    for(k=0;k<tries.length;k++){
+      y=Math.min(97,Math.max(5,tries[k]));
+      hint.style.setProperty('--hintY', y.toFixed(2)+'%');
+      if(!clashes()) return;
+    }
   }
   window.addEventListener('resize',place,{passive:true});
   window.addEventListener('load',place);
@@ -1186,72 +1351,91 @@ __NAV_JS__
   place();
 })();
 
-/* ---- the issue: a wheel of one-star reviews, driven by scroll ---- */
+/* ---- the issue: a wheel of one-star reviews, shuffling on a timer ----
+        It advances by itself, holds still while the pointer is over the wheel,
+        and only runs while the section is actually on screen, so arriving at it
+        always starts from the first fragment rather than a random one. ---- */
 (function(){
   var sec=document.getElementById('problem');
-  var runway=document.getElementById('issueRunway');
   var stage=document.getElementById('revStage');
-  if(!sec||!runway||!stage) return;
+  if(!sec||!stage) return;
+  var reviews=stage.closest('.reviews')||stage;
   var cards=[].slice.call(stage.querySelectorAll('.rev'));
   var num=document.getElementById('revNum');
   var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* the wheel runs on a phone as well now: only reduced motion falls back */
-  if(reduce || !cards.length){
+  /* reduced motion gets the plain readable list, exactly as before */
+  if(reduce || cards.length<2){
     sec.classList.add('is-static');
     return;
   }
 
-  var ticking=false, manual=false, idx=0;
+  var HOLD=3600, idx=0, timer=null, held=false, onScreen=false;
 
+  /* The stack is a RING, not a line. The offset wraps to the shortest way
+     round, so card 01 carries the same two-above-two-below stack as any middle
+     card and the wheel loops with no visible seam. Eight cards against a 2.6
+     visibility cutoff shows five at a time, so no card is ever needed in two
+     places at once. */
+  var N=cards.length;
+  function offset(i,prog){
+    var o=(i-prog+N/2)%N;
+    if(o<0) o+=N;
+    return o-N/2;
+  }
+
+  /* The transform is written on EVERY card, hidden ones included. Skipping the
+     hidden ones left a card holding the transform it had when it was last seen,
+     four steps away on the far side of the stack, so the next time it was
+     revealed it covered 280px in one step instead of 70px: four times the speed
+     of every other card, on eight steps out of eight once the wheel had been
+     round once. That was the uneven pace. Now the far-side move happens while
+     the card is still hidden and every visible step is one 70px move. */
   function render(prog){
-    for(var i=0;i<cards.length;i++){
-      var c=cards[i], o=i-prog, a=Math.abs(o);
+    for(var i=0;i<N;i++){
+      var c=cards[i], o=offset(i,prog), a=Math.abs(o);
+      c.style.zIndex=String(1000-Math.round(a*100));
+      c.style.transform='translateY('+(o*-70).toFixed(1)+'px) translateZ('+(-a*120).toFixed(0)+'px) rotateX('+(o*32).toFixed(1)+'deg)';
       if(a>2.6){ c.style.opacity='0'; c.style.visibility='hidden'; continue; }
       c.style.visibility='visible';
       c.style.opacity=(a<0.5 ? 1 : Math.max(0,1-(a-0.5)*0.58)).toFixed(3);
-      c.style.zIndex=String(1000-Math.round(a*100));
-      c.style.transform='translateY('+(o*-70).toFixed(1)+'px) translateZ('+(-a*120).toFixed(0)+'px) rotateX('+(o*32).toFixed(1)+'deg)';
     }
     if(num){ var n=Math.round(prog)+1; num.textContent=(n<10?'0':'')+n; }
   }
 
-  /* the scroll driver runs for exactly one pass. once the runway has been
-     scrolled through, it detaches for good and the chevrons take over, so
-     nothing is recomputed on every later scroll of the page. */
-  function handOff(){
-    if(manual) return;
-    manual=true;
-    window.removeEventListener('scroll',onScroll);
-    idx=cards.length-1;
-    sec.classList.add('is-manual');
-    render(idx);
-  }
-  function step(d){
-    idx=(idx+d+cards.length)%cards.length;   /* wraps at both ends */
-    render(idx);
+  /* the first paint places the stack, it does not animate it into existence */
+  function place(prog){
+    for(var i=0;i<N;i++) cards[i].style.transition='none';
+    render(prog);
+    void stage.offsetHeight;
+    for(var j=0;j<N;j++) cards[j].style.transition='';
   }
 
-  function place(){
-    ticking=false;
-    if(manual) return;
-    var r=runway.getBoundingClientRect();
-    var run=runway.offsetHeight - window.innerHeight;
-    if(run<=0) return;
-    var p=Math.min(1,Math.max(0,(-r.top)/run));
-    render(p*(cards.length-1));
-    if(p>=0.999){ handOff(); }
+  function tick(){ idx=(idx+1)%N; render(idx); }
+  function run(){ if(!timer && !held && onScreen) timer=setInterval(tick,HOLD); }
+  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+
+  /* the hold is scoped to the wheel column, not the whole section: stopping it
+     whenever the pointer crossed the copy would freeze it while reading */
+  reviews.addEventListener('mouseenter',function(){ held=true; stop(); });
+  reviews.addEventListener('mouseleave',function(){ held=false; run(); });
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden) stop(); else run();
+  });
+
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){
+      for(var i=0;i<es.length;i++){
+        onScreen=es[i].isIntersecting;
+        if(onScreen) run(); else stop();
+      }
+    },{threshold:.25}).observe(sec);
+  } else {
+    onScreen=true; run();
   }
-  function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(place); } }
-  window.addEventListener('scroll',onScroll,{passive:true});
 
-  var up=document.getElementById('revUp'), dn=document.getElementById('revDn');
-  if(up) up.addEventListener('click',function(){ step(-1); });
-  if(dn) dn.addEventListener('click',function(){ step(1); });
-
-  window.addEventListener('resize',function(){
-    if(manual){ render(idx); } else { place(); }
-  },{passive:true});
-  place();
+  window.addEventListener('resize',function(){ place(idx); },{passive:true});
+  place(0);
 })();
+
 </script>
