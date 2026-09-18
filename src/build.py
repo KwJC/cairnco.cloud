@@ -51,6 +51,155 @@ HOLDING_PAGES = [
 ]
 
 
+# ---------------------------------------------------------------- SEO / AEO
+# One place for everything a search engine or an answer engine reads. Every
+# fact here is verifiable: the UEN is the registered one, the address is the
+# country only because the registered street address is not settled yet, and
+# there is no founding claim beyond the ACRA registration date.
+SITE = 'https://cairnco.cloud'
+
+LEGAL_NAME = 'CAIRNCO HOLDINGS LLP'
+UEN = 'T26LL0983A'
+EMAIL = 'hello@cairnco.cloud'
+FOUNDED = '2026-09-10'          # ACRA registration
+SAME_AS = [
+    'https://www.tiktok.com/@cairnco_holdings',
+    'https://www.instagram.com/cairnco.holdings',
+    # LinkedIn and GitHub go here when the accounts exist
+]
+SERVICES = ['Websites', 'SEO & AEO', 'Marketing', 'Internal Tools',
+            'AI Workflows', 'Automation', 'Cloud']
+
+# noindex is deliberate on the three holding pages. Three near-identical
+# 23-word pages in the index is a quality signal problem, not a win. Remove
+# the flag the moment a page has real content, and it joins the sitemap.
+PAGE_META = {
+    'index.html': dict(
+        path='/',
+        title='Websites, Automation & AI for Singapore Businesses | CairnCo',
+        desc=('CairnCo builds and runs the tech behind Singapore small businesses: '
+              'websites, internal tools, AI workflows, automation and cloud. '
+              'Built, launched, kept running.'),
+        index=True, priority='1.0'),
+    'contact.html': dict(
+        path='/contact.html',
+        title='Contact CairnCo | Tell us what is breaking',
+        desc=('Tell CairnCo what is breaking and we will tell you whether we can fix it. '
+              'Singapore-registered LLP. Replies within one working day.'),
+        index=True, priority='0.8'),
+    'landmarks.html': dict(
+        path='/landmarks.html', title='Landmarks | CairnCo',
+        desc='The work CairnCo has built. This page is being written.',
+        index=False, priority='0.3'),
+    'kit.html': dict(
+        path='/kit.html', title='The Kit | CairnCo',
+        desc='Reusable pieces CairnCo builds with. This page is being written.',
+        index=False, priority='0.3'),
+    'newsroom.html': dict(
+        path='/newsroom.html', title='Newsroom | CairnCo',
+        desc='News from CairnCo. This page is being written.',
+        index=False, priority='0.3'),
+}
+
+
+def _esc(s):
+    return (s.replace('&', '&amp;').replace('<', '&lt;')
+             .replace('>', '&gt;').replace('"', '&quot;'))
+
+
+def jsonld_home():
+    import json
+    org = {
+        '@type': 'ProfessionalService',
+        '@id': SITE + '/#org',
+        'name': 'CairnCo',
+        'legalName': LEGAL_NAME,
+        'identifier': UEN,
+        'url': SITE,
+        'email': EMAIL,
+        'foundingDate': FOUNDED,
+        'description': PAGE_META['index.html']['desc'],
+        'address': {'@type': 'PostalAddress', 'addressCountry': 'SG',
+                    'addressLocality': 'Singapore'},
+        'areaServed': {'@type': 'Country', 'name': 'Singapore'},
+        'knowsAbout': SERVICES,
+        'sameAs': SAME_AS,
+        'hasOfferCatalog': {
+            '@type': 'OfferCatalog', 'name': 'Services',
+            'itemListElement': [
+                {'@type': 'Offer', 'itemOffered':
+                    {'@type': 'Service', 'name': s, 'provider': {'@id': SITE + '/#org'}}}
+                for s in SERVICES]},
+    }
+    site = {'@type': 'WebSite', '@id': SITE + '/#site', 'url': SITE,
+            'name': 'CairnCo', 'inLanguage': 'en',
+            'publisher': {'@id': SITE + '/#org'}}
+    doc = {'@context': 'https://schema.org', '@graph': [org, site]}
+    return ('<script type="application/ld+json">'
+            + json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
+            + '</script>')
+
+
+def jsonld_crumb(name, path):
+    import json
+    doc = {'@context': 'https://schema.org', '@type': 'BreadcrumbList',
+           'itemListElement': [
+               {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE + '/'},
+               {'@type': 'ListItem', 'position': 2, 'name': name, 'item': SITE + path}]}
+    return ('<script type="application/ld+json">'
+            + json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
+            + '</script>')
+
+
+def head_meta(filename):
+    m = PAGE_META[filename]
+    url = SITE + m['path']
+    out = ['<title>%s</title>' % _esc(m['title']),
+           '<meta name="description" content="%s">' % _esc(m['desc']),
+           '<link rel="canonical" href="%s">' % url]
+    if not m['index']:
+        out.append('<meta name="robots" content="noindex,follow">')
+    out += [
+        '<meta property="og:type" content="website">',
+        '<meta property="og:site_name" content="CairnCo">',
+        '<meta property="og:locale" content="en_SG">',
+        '<meta property="og:title" content="%s">' % _esc(m['title']),
+        '<meta property="og:description" content="%s">' % _esc(m['desc']),
+        '<meta property="og:url" content="%s">' % url,
+        '<meta property="og:image" content="%s/og-image.png">' % SITE,
+        '<meta property="og:image:width" content="1200">',
+        '<meta property="og:image:height" content="630">',
+        '<meta property="og:image:alt" content="CairnCo. You run the business, we run the tech.">',
+        '<meta name="twitter:card" content="summary_large_image">',
+        '<meta name="twitter:title" content="%s">' % _esc(m['title']),
+        '<meta name="twitter:description" content="%s">' % _esc(m['desc']),
+        '<meta name="twitter:image" content="%s/og-image.png">' % SITE,
+    ]
+    if filename == 'index.html':
+        out.append(jsonld_home())
+    else:
+        out.append(jsonld_crumb(m['title'].split(' | ')[0], m['path']))
+    return '\n'.join(out)
+
+
+def write_sitemap(root, dist):
+    from datetime import date
+    today = date.today().isoformat()
+    rows = []
+    for f, m in PAGE_META.items():
+        if not m['index']:
+            continue
+        rows.append('  <url><loc>%s%s</loc><lastmod>%s</lastmod>'
+                    '<changefreq>weekly</changefreq><priority>%s</priority></url>'
+                    % (SITE, m['path'], today, m['priority']))
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+           + '\n'.join(rows) + '\n</urlset>\n')
+    for d in (root, dist):
+        (d / 'sitemap.xml').write_text(xml, encoding='utf-8')
+    return len(rows)
+
+
 def read(name):
     return (SRC / name).read_text(encoding='utf-8')
 
@@ -133,10 +282,54 @@ _missing = [s for s, _ in SOCIAL_ICONS if s not in _found]
 if _missing:
     print('  social icons still placeholders: %s' % ', '.join(_missing))
     print('  drop the official SVGs into src/icons/ and rebuild')
-finish(ROOT / 'index.html', fill(home))
-finish(ROOT / 'contact.html', fill(read('contact.template.html')))
+finish(ROOT / 'index.html', fill(home, {'__META__': head_meta('index.html')}))
+finish(ROOT / 'contact.html',
+       fill(read('contact.template.html'), {'__META__': head_meta('contact.html')}))
 
 sub = read('sub.template.html')
 for filename, title, name in HOLDING_PAGES:
     finish(ROOT / filename,
-           fill(sub, {'__PAGE_TITLE__': title, '__PAGE_NAME__': name}))
+           fill(sub, {'__PAGE_NAME__': name, '__META__': head_meta(filename)}))
+
+# ---- robots.txt ----------------------------------------------------------
+# No robots.txt at all already allows every crawler, so spelling that out
+# changes nothing. The AI crawlers are named explicitly so the decision is
+# visible: flip any Allow to Disallow to shut one out. Being readable by them
+# is the point of AEO, so they are allowed.
+ROBOTS = '''User-agent: *
+Allow: /
+
+# Answer engines. Named so the choice is explicit rather than accidental.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: %s/sitemap.xml
+''' % SITE
+for _d in (ROOT, DIST):
+    (_d / 'robots.txt').write_text(ROBOTS, encoding='utf-8')
+_n = write_sitemap(ROOT, DIST)
+
+# ---- static assets: favicon, share card ----------------------------------
+import shutil
+for _a in ('favicon.ico', 'og-image.png', 'apple-touch-icon.png', 'icon-512.png'):
+    _src = SRC / _a
+    if _src.is_file():
+        for _d in (ROOT, DIST):
+            shutil.copyfile(_src, _d / _a)
+        print('  %-16s %6d bytes' % (_a, _src.stat().st_size))
+    else:
+        print('  %-16s MISSING' % _a)
+print('  %-16s %6d bytes' % ('robots.txt', len(ROBOTS)))
+print('  %-16s %6d urls' % ('sitemap.xml', _n))

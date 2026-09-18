@@ -1,0 +1,15 @@
+# Normalise to LF everywhere, in the repo AND in the working copy.
+# Without this, Git on Windows rewrites these files to CRLF on the next
+# checkout or clone. That would change every file's checksum and size for no
+# real reason, and it breaks the read-back verification used when committing
+# generated files from another machine.
+* text=auto eol=lf
+
+# Binary: never touch these.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary

@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Answer engines. Named so the choice is explicit rather than accidental.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://cairnco.cloud/sitemap.xml

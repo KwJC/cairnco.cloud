@@ -1,4 +1,6 @@
-<title>CairnCo</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <!--==HEAD:START==-->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -6,7 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <!--==HEAD:END==-->
+
+__META__
 
 <style>
 /*==SHELL-A:START==*/
@@ -225,6 +231,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
    390, so a wrap can never make it three lines. */
 .hero__result{display:inline-block;will-change:opacity,transform;
   transition:opacity .28s var(--ease),transform .32s var(--ease)}
+/* All eight ship in the HTML so a crawler reads the whole pitch, not the one
+   that happens to be showing. Only the active one is displayed; the script
+   moves the class rather than rewriting text. */
+.hero__opt{display:none}
+.hero__opt.is-on{display:inline}
 
 .hero__cta{display:flex;gap:var(--s3);margin-top:var(--s5);flex-wrap:wrap}
 .hero__cta .btn{font-size:1.06rem;padding:.92em 1.7em;border-radius:8px}
@@ -642,7 +653,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   .who__door{margin-top:var(--s4);padding-block:0 var(--s6)}
 }
 </style>
+</head>
 
+<body>
 <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
 <linearGradient id="stone0" x1=".22" y1="0" x2=".72" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone1" x1=".05" y1=".12" x2=".9" y2=".86"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone2" x1=".34" y1="0" x2=".56" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone3" x1=".12" y1="0" x2=".95" y2=".7"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient></defs></svg>
 
@@ -669,7 +682,16 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   <canvas class="terrain" id="heroField" aria-hidden="true"></canvas>
   <div class="wrap hero__grid">
     <div class="hero__text">
-      <h1>You run the business.<br><em class="hero__result" id="heroResult">We make it <span class="hero__key">seen</span>.</em></h1>
+      <h1>You run the business.<br><em class="hero__result" id="heroResult">
+        <span class="hero__opt is-on">We make it <span class="hero__key">seen</span>.</span>
+        <span class="hero__opt">We find your <span class="hero__key">buyers</span>.</span>
+        <span class="hero__opt">We get you <span class="hero__key">chosen</span>.</span>
+        <span class="hero__opt">We <span class="hero__key">automate</span> the rest.</span>
+        <span class="hero__opt">We put <span class="hero__key">AI</span> to work.</span>
+        <span class="hero__opt">We <span class="hero__key">kit</span> you out.</span>
+        <span class="hero__opt">We even the <span class="hero__key">odds</span>.</span>
+        <span class="hero__opt">We build it to <span class="hero__key">scale</span>.</span>
+      </em></h1>
       <!-- hard&nbsp;to&nbsp;beat stays one unit: without it the line breaks after
      "hard to" and leaves "beat." alone as a widow. -->
       <p class="hero__sub">The tech department that makes you hard&nbsp;to&nbsp;beat.</p>
@@ -978,36 +1000,15 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   var el=document.getElementById('heroResult');
   if(!el) return;
 
-  /* Order is deliberate: four market-facing results, then four capability ones.
-     Seen, found, chosen leads the customer journey; automate and AI show how;
-     kit and odds are the two shortest lines and land as the punch; scale closes
-     on the longest horizon. */
-  var RESULTS=[
-    { t:'We make it seen.',      k:'seen'     },
-    { t:'We find your buyers.',  k:'buyers'   },
-    { t:'We get you chosen.',    k:'chosen'   },
-    { t:'We automate the rest.', k:'automate' },
-    { t:'We put AI to work.',    k:'AI'       },
-    { t:'We kit you out.',       k:'kit'      },
-    { t:'We even the odds.',     k:'odds'     },
-    { t:'We build it to scale.', k:'scale'    }
-  ];
+  /* Order is deliberate: four market-facing results, then four capability
+     ones. Seen, found, chosen leads the customer journey; automate and AI show
+     how; kit and odds are the two shortest lines and land as the punch; scale
+     closes on the longest horizon.
 
-  /* Built from text nodes and one span, never innerHTML. The keyword is the
-     word that carries the promise, so on three of the eight it sits mid-line
-     rather than at the end. */
-  function write(r){
-    while(el.firstChild) el.removeChild(el.firstChild);
-    var i=r.t.indexOf(r.k);
-    if(i<0){ el.appendChild(document.createTextNode(r.t)); return; }
-    el.appendChild(document.createTextNode(r.t.slice(0,i)));
-    var s=document.createElement('span');
-    s.className='hero__key';
-    s.textContent=r.k;
-    el.appendChild(s);
-    el.appendChild(document.createTextNode(r.t.slice(i+r.k.length)));
-  }
-  if(RESULTS.length<2) return;
+     The lines live in the markup, not here, so search engines and answer
+     engines read all eight. This only moves the is-on class. */
+  var opts=[].slice.call(el.querySelectorAll('.hero__opt'));
+  if(opts.length<2) return;
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   var idx=0, timer=null, held=false, HOLD=3000, FADE=280;
@@ -1016,7 +1017,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     el.style.opacity='0';
     el.style.transform='translateY(-8px)';
     setTimeout(function(){
-      write(RESULTS[n]);
+      for(var i=0;i<opts.length;i++) opts[i].classList.toggle('is-on', i===n);
       el.style.transition='none';
       el.style.transform='translateY(8px)';
       void el.offsetHeight;          /* commit the jump before easing back */
@@ -1026,7 +1027,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     },FADE);
   }
 
-  function tick(){ idx=(idx+1)%RESULTS.length; paint(idx); }
+  function tick(){ idx=(idx+1)%opts.length; paint(idx); }
   function run(){ if(!timer && !held) timer=setInterval(tick,HOLD); }
   function stop(){ if(timer){ clearInterval(timer); timer=null; } }
 
@@ -1439,3 +1440,5 @@ __NAV_JS__
 })();
 
 </script>
+</body>
+</html>
