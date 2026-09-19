@@ -2,13 +2,20 @@
 
 ## The short version
 
-Open **`index.html`** at the top of this folder. The built pages are
-`index.html`, `contact.html`, `landmarks.html`, `kit.html` and `newsroom.html`;
-the header links move between them.
+Open **`index.html`** at the top of this folder. It is the lightweight language
+chooser and redirects to `/en/` or `/zh/` from browser language settings when
+served over HTTP.
+
+For direct file preview, open the generated language pages instead:
+
+- `en/index.html`
+- `zh/index.html`
+- `en/contact/index.html`
+- `zh/contact/index.html`
 
 In VS Code: right-click `index.html` in the file tree, then **Open with Live
-Server**. Double-clicking works too, over `file://`, since there is no
-server-side code.
+Server**. For browser-language switching and directory URLs, use Live Server or
+Wrangler preview rather than double-clicking from `file://`.
 
 ## The two things that will make effects look broken
 
@@ -17,7 +24,7 @@ Those are source files. They still contain the placeholders `__TOPO_OPEN__`,
 `__SHELL_CSS__`, `__NAV_HTML__`, `__FOOT_HTML__` and `__NAV_JS__` where the
 artwork, the shared stylesheet, the header and the footer get injected. Opened
 directly they render with no styling, no header and no footer. This is the most likely reason an effect "isn't working". Only
-the three files at the folder root are real pages.
+the generated root files and language folders are real pages.
 
 **2. Make the browser window at least 900px wide.**
 
@@ -93,7 +100,8 @@ phone.
 
 ## Editing
 
-Edit the files in **`src/`**, never the built pages at the root.
+Edit the files in **`src/`**, never the built pages at the root or in `en/` and
+`zh/`.
 
 - Home page: `src/index.template.html`
 - Contact page: `src/contact.template.html`
@@ -111,9 +119,9 @@ cd src
 python build.py
 ```
 
-It prints the five files it wrote and their sizes. Live Server picks them up on
-save. If a placeholder was left unfilled it stops with an error instead of
-writing a broken page.
+It prints the language trees, redirect pages and their sizes. Live Server picks
+them up on save. If a placeholder was left unfilled it stops with an error
+instead of writing a broken page.
 
 If you edit a built page directly, your next build silently overwrites it.
 
@@ -155,10 +163,11 @@ python src/build.py
 npx wrangler deploy
 ```
 
-`build.py` writes the five pages to the root (for opening off disk) and mirrors
-them into `dist/`. Wrangler publishes **only `dist/`**, which is what keeps
-`src/`, `build.py` and these docs off the public site. `dist/` is gitignored, so
-always run the build before deploying.
+`build.py` writes the root chooser, legacy redirect pages and the `/en/` and
+`/zh/` language trees to the repo root, then mirrors them into `dist/`.
+Wrangler publishes **only `dist/`**, which is what keeps `src/`, `build.py` and
+these docs off the public site. `dist/` is gitignored, so always run the build
+before deploying.
 
 To check the configuration without publishing:
 
@@ -176,9 +185,9 @@ Pages is the alternative if Workers is ever a problem. It needs no build
 command and a build output directory of `/`.
 
 
-Cloudflare Pages, Upload assets. Drop in all five: **`index.html`,
-`contact.html`, `landmarks.html`, `kit.html`, `newsroom.html`**. No build
-command, no output directory. `src/` does not need to be uploaded.
+Cloudflare Pages, Upload assets. Drop in the generated root files plus the
+`en/` and `zh/` folders. No build command, no output directory. `src/` does not
+need to be uploaded.
 
 Missing a page out is the easy mistake here: the header links to all of them, so
 an unuploaded page is a dead link in the nav.

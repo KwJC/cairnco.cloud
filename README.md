@@ -3,9 +3,9 @@
 The website for **CAIRNCO HOLDINGS LLP** (UEN T26LL0983A), a Singapore tech
 consultancy trading as CairnCo.
 
-Hand-written static HTML and CSS. No npm, no framework, no runtime
-dependencies, no build toolchain. A single Python script assembles five pages
-from templates and inlines the artwork. Clone it, open `index.html`, done.
+Hand-written static HTML and CSS. No framework, no runtime dependencies. A
+single Python script assembles the English and Simplified Chinese static pages
+from templates, injects SEO/AEO metadata, and inlines the artwork.
 
 The hero terrain is drawn live on a canvas with marching squares over a scalar
 field; the contour backgrounds are generated from a sum of gaussians rather
@@ -17,11 +17,14 @@ including the browser width some effects need.
 ## Structure
 
 ```
-index.html            home. Built file. Preview and deploy this, never edit it.
-contact.html          get in touch, message form, follow us, open discovery
-landmarks.html        holding page, lock and "Coming soon"
-kit.html              holding page, lock and "Coming soon"
-newsroom.html         holding page, lock and "Coming soon"
+index.html            language chooser; redirects by browser language
+contact.html          noindex redirect to /en/contact/
+landmarks.html        noindex redirect to /en/landmarks/
+kit.html              noindex redirect to /en/kit/
+newsroom.html         noindex redirect to /en/newsroom/
+en/                   crawlable English pages
+zh/                   crawlable Simplified Chinese pages
+sitemap.xml           language-aware sitemap with hreflang alternates
 HOW-TO-PREVIEW.md     how to preview, edit, rebuild and deploy
 src/
   index.template.html   edit this for the home page, then run build.py
@@ -52,8 +55,9 @@ Everything shared lives in exactly one place and `build.py` injects it:
 So a colour, a nav link, a footer line or the wordmark is a single edit and all
 five pages pick it up on the next build.
 
-Every internal link is a bare filename, so the same header and footer work
-unchanged on every page.
+The published language URLs are directory-style paths such as `/en/`,
+`/zh/`, `/en/contact/` and `/zh/contact/`. The root `index.html` is the
+`x-default` language chooser.
 
 **Do not delete or rename those marker comments.** `build.py` stops with an
 error if a region or a placeholder is missing, rather than shipping a broken
@@ -64,11 +68,12 @@ page.
 One line in `HOLDING_PAGES` near the top of `build.py`:
 
 ```python
-('pricing.html', 'Pricing | CairnCo', 'Pricing'),
+('pricing.html', 'pricing', 'Pricing'),
 ```
 
-Filename, `<title>`, and the heading shown above the lock. Then add it to the
-`==NAV==` and `==FOOT==` regions so it is reachable.
+Filename, URL slug, and the English heading shown above the lock. Then add its
+localized metadata to `PAGE_META`, and add it to the `==NAV==` and `==FOOT==`
+regions so it is reachable.
 
 ## Social icons
 

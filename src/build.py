@@ -23,6 +23,7 @@ Run it from anywhere:  python build.py
 import base64
 import pathlib
 import re
+import shutil
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -45,9 +46,9 @@ SOCIAL_ICONS = [
 ]
 
 HOLDING_PAGES = [
-    ('landmarks.html', 'Landmarks | CairnCo', 'Landmarks'),
-    ('kit.html', 'The Kit | CairnCo', 'The Kit'),
-    ('newsroom.html', 'Newsroom | CairnCo', 'Newsroom'),
+    ('landmarks.html', 'landmarks', 'Landmarks'),
+    ('kit.html', 'kit', 'The Kit'),
+    ('newsroom.html', 'newsroom', 'Newsroom'),
 ]
 
 
@@ -70,35 +71,85 @@ SAME_AS = [
 SERVICES = ['Websites', 'SEO & AEO', 'Marketing', 'Internal Tools',
             'AI Workflows', 'Automation', 'Cloud']
 
+LANGS = {
+    'en': dict(
+        label='English',
+        html='en-SG',
+        schema='en',
+        locale='en_SG',
+        prefix='/en',
+        home='Home',
+        root_title='Choose Language | CairnCo',
+        root_desc='Choose English or Chinese for CairnCo.',
+        og_alt='CairnCo. You run the business, we run the tech.',
+        services=SERVICES),
+    'zh': dict(
+        label='中文',
+        html='zh-Hans-SG',
+        schema='zh-Hans',
+        locale='zh_SG',
+        prefix='/zh',
+        home='首页',
+        root_title='选择语言 | CairnCo',
+        root_desc='选择英文或中文浏览 CairnCo。',
+        og_alt='CairnCo。你专注经营，我们负责技术。',
+        services=['网站建设', 'SEO 与 AEO', '营销', '内部工具',
+                  'AI 工作流', '自动化', '云服务']),
+}
+
 # noindex is deliberate on the three holding pages. Three near-identical
 # 23-word pages in the index is a quality signal problem, not a win. Remove
 # the flag the moment a page has real content, and it joins the sitemap.
 PAGE_META = {
     'index.html': dict(
-        path='/',
-        title='Websites, Automation & AI for Singapore Businesses | CairnCo',
-        desc=('CairnCo builds and runs the tech behind Singapore small businesses: '
-              'websites, internal tools, AI workflows, automation and cloud. '
-              'Built, launched, kept running.'),
-        index=True, priority='1.0'),
+        slug='',
+        priority='1.0',
+        index=True,
+        en=dict(
+            title='Websites, Automation & AI for Singapore Businesses | CairnCo',
+            desc=('CairnCo builds and runs the tech behind Singapore small businesses: '
+                  'websites, internal tools, AI workflows, automation and cloud. '
+                  'Built, launched, kept running.')),
+        zh=dict(
+            title='新加坡企业网站、自动化与 AI 技术服务 | CairnCo',
+            desc=('CairnCo 为新加坡中小企业建设并运营网站、内部工具、AI 工作流、'
+                  '自动化和云服务。负责上线，也负责长期运行。'))),
     'contact.html': dict(
-        path='/contact.html',
-        title='Contact CairnCo | Tell us what is breaking',
-        desc=('Tell CairnCo what is breaking and we will tell you whether we can fix it. '
-              'Singapore-registered LLP. Replies within one working day.'),
-        index=True, priority='0.8'),
+        slug='contact',
+        priority='0.8',
+        index=True,
+        en=dict(
+            title='Contact CairnCo | Tell us what is breaking',
+            desc=('Tell CairnCo what is breaking and we will tell you whether we can fix it. '
+                  'Singapore-registered LLP. Replies within one working day.')),
+        zh=dict(
+            title='联系 CairnCo | 告诉我们哪里卡住了',
+            desc=('告诉 CairnCo 你的业务技术哪里出问题。我们会判断能否修复，以及需要什么。'
+                  '新加坡注册 LLP，一个工作日内回复。'))),
     'landmarks.html': dict(
-        path='/landmarks.html', title='Landmarks | CairnCo',
-        desc='The work CairnCo has built. This page is being written.',
-        index=False, priority='0.3'),
+        slug='landmarks',
+        priority='0.3',
+        index=False,
+        en=dict(title='Landmarks | CairnCo',
+                desc='The work CairnCo has built. This page is being written.'),
+        zh=dict(title='作品地标 | CairnCo',
+                desc='CairnCo 已完成的作品。页面正在撰写中。')),
     'kit.html': dict(
-        path='/kit.html', title='The Kit | CairnCo',
-        desc='Reusable pieces CairnCo builds with. This page is being written.',
-        index=False, priority='0.3'),
+        slug='kit',
+        priority='0.3',
+        index=False,
+        en=dict(title='The Kit | CairnCo',
+                desc='Reusable pieces CairnCo builds with. This page is being written.'),
+        zh=dict(title='工具箱 | CairnCo',
+                desc='CairnCo 常用的可复用组件。页面正在撰写中。')),
     'newsroom.html': dict(
-        path='/newsroom.html', title='Newsroom | CairnCo',
-        desc='News from CairnCo. This page is being written.',
-        index=False, priority='0.3'),
+        slug='newsroom',
+        priority='0.3',
+        index=False,
+        en=dict(title='Newsroom | CairnCo',
+                desc='News from CairnCo. This page is being written.'),
+        zh=dict(title='新闻室 | CairnCo',
+                desc='CairnCo 的最新消息。页面正在撰写中。')),
 }
 
 
@@ -107,32 +158,70 @@ def _esc(s):
              .replace('>', '&gt;').replace('"', '&quot;'))
 
 
-def jsonld_home():
+def page_path(lang, filename):
+    slug = PAGE_META[filename]['slug']
+    base = LANGS[lang]['prefix']
+    return base + ('/' + slug if slug else '') + '/'
+
+
+def page_url(lang, filename):
+    return SITE + page_path(lang, filename)
+
+
+def page_out(lang, filename):
+    slug = PAGE_META[filename]['slug']
+    return pathlib.Path(lang) / (slug or '') / 'index.html'
+
+
+def localized_meta(filename, lang):
+    m = PAGE_META[filename]
+    d = m[lang].copy()
+    d.update(slug=m['slug'], index=m['index'], priority=m['priority'])
+    return d
+
+
+def alternates(filename):
+    rows = []
+    for lang, cfg in LANGS.items():
+        rows.append('<link rel="alternate" hreflang="%s" href="%s">'
+                    % (cfg['html'], page_url(lang, filename)))
+    rows.append('<link rel="alternate" hreflang="x-default" href="%s">' % x_default_url(filename))
+    return rows
+
+
+def x_default_url(filename):
+    return SITE + '/' if filename == 'index.html' else page_url('en', filename)
+
+
+def jsonld_home(lang):
     import json
+    cfg = LANGS[lang]
+    m = localized_meta('index.html', lang)
     org = {
         '@type': 'ProfessionalService',
         '@id': SITE + '/#org',
         'name': 'CairnCo',
         'legalName': LEGAL_NAME,
         'identifier': UEN,
-        'url': SITE,
+        'url': page_url(lang, 'index.html'),
         'email': EMAIL,
         'foundingDate': FOUNDED,
-        'description': PAGE_META['index.html']['desc'],
+        'description': m['desc'],
         'address': {'@type': 'PostalAddress', 'addressCountry': 'SG',
                     'addressLocality': 'Singapore'},
         'areaServed': {'@type': 'Country', 'name': 'Singapore'},
-        'knowsAbout': SERVICES,
+        'knowsAbout': cfg['services'],
         'sameAs': SAME_AS,
         'hasOfferCatalog': {
             '@type': 'OfferCatalog', 'name': 'Services',
             'itemListElement': [
                 {'@type': 'Offer', 'itemOffered':
                     {'@type': 'Service', 'name': s, 'provider': {'@id': SITE + '/#org'}}}
-                for s in SERVICES]},
+                for s in cfg['services']]},
     }
-    site = {'@type': 'WebSite', '@id': SITE + '/#site', 'url': SITE,
-            'name': 'CairnCo', 'inLanguage': 'en',
+    site = {'@type': 'WebSite', '@id': SITE + '/#site-' + lang,
+            'url': page_url(lang, 'index.html'),
+            'name': 'CairnCo', 'inLanguage': cfg['schema'],
             'publisher': {'@id': SITE + '/#org'}}
     doc = {'@context': 'https://schema.org', '@graph': [org, site]}
     return ('<script type="application/ld+json">'
@@ -140,45 +229,51 @@ def jsonld_home():
             + '</script>')
 
 
-def jsonld_crumb(name, path):
+def jsonld_crumb(lang, name, path):
     import json
+    home = LANGS[lang]['home']
     doc = {'@context': 'https://schema.org', '@type': 'BreadcrumbList',
            'itemListElement': [
-               {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE + '/'},
-               {'@type': 'ListItem', 'position': 2, 'name': name, 'item': SITE + path}]}
+               {'@type': 'ListItem', 'position': 1, 'name': home,
+                'item': page_url(lang, 'index.html')},
+               {'@type': 'ListItem', 'position': 2, 'name': name,
+                'item': SITE + path}]}
     return ('<script type="application/ld+json">'
             + json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
             + '</script>')
 
 
-def head_meta(filename):
-    m = PAGE_META[filename]
-    url = SITE + m['path']
+def head_meta(filename, lang):
+    m = localized_meta(filename, lang)
+    cfg = LANGS[lang]
+    path = page_path(lang, filename)
+    url = SITE + path
     out = ['<title>%s</title>' % _esc(m['title']),
            '<meta name="description" content="%s">' % _esc(m['desc']),
            '<link rel="canonical" href="%s">' % url]
+    out += alternates(filename)
     if not m['index']:
         out.append('<meta name="robots" content="noindex,follow">')
     out += [
         '<meta property="og:type" content="website">',
         '<meta property="og:site_name" content="CairnCo">',
-        '<meta property="og:locale" content="en_SG">',
+        '<meta property="og:locale" content="%s">' % cfg['locale'],
         '<meta property="og:title" content="%s">' % _esc(m['title']),
         '<meta property="og:description" content="%s">' % _esc(m['desc']),
         '<meta property="og:url" content="%s">' % url,
         '<meta property="og:image" content="%s/og-image.png">' % SITE,
         '<meta property="og:image:width" content="1200">',
         '<meta property="og:image:height" content="630">',
-        '<meta property="og:image:alt" content="CairnCo. You run the business, we run the tech.">',
+        '<meta property="og:image:alt" content="%s">' % _esc(cfg['og_alt']),
         '<meta name="twitter:card" content="summary_large_image">',
         '<meta name="twitter:title" content="%s">' % _esc(m['title']),
         '<meta name="twitter:description" content="%s">' % _esc(m['desc']),
         '<meta name="twitter:image" content="%s/og-image.png">' % SITE,
     ]
     if filename == 'index.html':
-        out.append(jsonld_home())
+        out.append(jsonld_home(lang))
     else:
-        out.append(jsonld_crumb(m['title'].split(' | ')[0], m['path']))
+        out.append(jsonld_crumb(lang, m['title'].split(' | ')[0], path))
     return '\n'.join(out)
 
 
@@ -189,11 +284,18 @@ def write_sitemap(root, dist):
     for f, m in PAGE_META.items():
         if not m['index']:
             continue
-        rows.append('  <url><loc>%s%s</loc><lastmod>%s</lastmod>'
-                    '<changefreq>weekly</changefreq><priority>%s</priority></url>'
-                    % (SITE, m['path'], today, m['priority']))
+        for lang in LANGS:
+            alt = ''.join(
+                '<xhtml:link rel="alternate" hreflang="%s" href="%s" />'
+                % (cfg['html'], page_url(code, f))
+                for code, cfg in LANGS.items())
+            alt += '<xhtml:link rel="alternate" hreflang="x-default" href="%s" />' % x_default_url(f)
+            rows.append('  <url><loc>%s</loc><lastmod>%s</lastmod>'
+                        '<changefreq>weekly</changefreq><priority>%s</priority>%s</url>'
+                        % (page_url(lang, f), today, m['priority'], alt))
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
-           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+           'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
            + '\n'.join(rows) + '\n</urlset>\n')
     for d in (root, dist):
         (d / 'sitemap.xml').write_text(xml, encoding='utf-8')
@@ -269,6 +371,257 @@ def region(text, tag, comment=False):
     return m.group(1).strip()
 
 
+ZH_TEXT = {
+    'Menu': '菜单',
+    'Home': '首页',
+    'Landmarks': '作品地标',
+    'The Kit': '工具箱',
+    'Newsroom': '新闻室',
+    'Contact us': '联系我们',
+    'Book a discovery call': '预约咨询',
+    'See what we build': '看看我们建设什么',
+    'You run the business.': '你专注经营。',
+    'We make it <span class="hero__key">seen</span>.': '我们让客户<span class="hero__key">看见</span>你。',
+    'We find your <span class="hero__key">buyers</span>.': '我们帮你找到<span class="hero__key">买家</span>。',
+    'We get you <span class="hero__key">chosen</span>.': '我们让你成为<span class="hero__key">首选</span>。',
+    'We <span class="hero__key">automate</span> the rest.': '我们把其余流程<span class="hero__key">自动化</span>。',
+    'We put <span class="hero__key">AI</span> to work.': '我们让 <span class="hero__key">AI</span> 真正工作。',
+    'We <span class="hero__key">kit</span> you out.': '我们配齐你的<span class="hero__key">工具</span>。',
+    'We even the <span class="hero__key">odds</span>.': '我们帮你拉平<span class="hero__key">差距</span>。',
+    'We build it to <span class="hero__key">scale</span>.': '我们建设能<span class="hero__key">扩展</span>的系统。',
+    'The tech department that makes you hard&nbsp;to&nbsp;beat.': '让你更难被超越的技术团队。',
+    'Websites <b>&middot;</b> SEO &amp; AEO <b>&middot;</b> Marketing <b>&middot;</b> Internal Tools <b>&middot;</b> AI Workflows <b>&middot;</b> Automation <b>&middot;</b> Cloud': '网站建设 <b>&middot;</b> SEO 与 AEO <b>&middot;</b> 营销 <b>&middot;</b> 内部工具 <b>&middot;</b> AI 工作流 <b>&middot;</b> 自动化 <b>&middot;</b> 云服务',
+    'Websites': '网站建设',
+    'Internal Tools': '内部工具',
+    'AI Workflows': 'AI 工作流',
+    'Automation': '自动化',
+    'SEO &amp; AEO': 'SEO 与 AEO',
+    'Marketing': '营销',
+    'Cloud': '云服务',
+    'Hover a pin to see what we build': '悬停标记查看我们建设的内容',
+    'Registered Singapore LLP': '新加坡注册 LLP',
+    'Based in Singapore': '总部位于新加坡',
+    'Replies within one working day': '一个工作日内回复',
+    'What we keep finding': '我们经常看到的问题',
+    'Nobody sets out to end up here. It happens one reasonable decision at a time. A freelancer for the site. Someone else for payments. A tool signed up for in 2022 that nobody has logged into since.': '没有人一开始就想把系统弄成这样。它通常是一连串看似合理的决定慢慢堆出来的：网站找一个自由职业者，付款交给另一个人，2022 年注册的工具从此没人登录。',
+    'Every choice made sense on its own. Nobody was ever responsible for the whole.': '每个选择单独看都合理。只是从来没有一个人负责整体。',
+    'That is the job. Not a website. The whole thing.': '这才是工作本身。不是一个网站，而是整个系统。',
+    'Fragments of the problem': '问题的碎片',
+    '3 weeks ago': '3 周前',
+    'a month ago': '1 个月前',
+    '2 months ago': '2 个月前',
+    '4 months ago': '4 个月前',
+    '5 months ago': '5 个月前',
+    '6 months ago': '6 个月前',
+    '7 months ago': '7 个月前',
+    'one star out of five': '五星中的一星',
+    'Tried the contact form three times. Never heard back. Assumed they had shut down.': '联系表单试了三次，一直没有回复。还以为他们已经停业了。',
+    'Site looks like nothing has been touched since 2017. Could not tell if they were still trading.': '网站看起来像 2017 年之后就没人维护。不确定他们是否还在营业。',
+    'Got three separate emails about one booking, from three different systems.': '一个预约收到了三封邮件，来自三个不同系统。',
+    'They still had my old address on file. Delivery went to a flat I left two years ago.': '他们系统里还是我的旧地址。货送到了我两年前搬离的公寓。',
+    'Waited four days for a quote. Was told someone has to work them out by hand.': '等报价等了四天。对方说还得有人手动计算。',
+    'Half the site still says coming soon. It has said that for a year.': '网站一半页面还写着即将上线，已经这样一年了。',
+    'Booking page has been down all week. Nobody there seems able to fix it.': '预约页面整周都打不开。看起来没人能修好。',
+    'Ended up phoning the owner directly. He apologised and said he would sort it out himself.': '最后只能直接打电话给老板。他道歉说会自己处理。',
+    'Reviewed: a business like yours': '评价对象：类似你的企业',
+    'Who we build for': '我们服务谁',
+    'We are not specialists in your industry. We are specialists in what breaks in it.': '我们不是你的行业专家。我们专门处理行业里最容易卡住的技术问题。',
+    'Retail &amp; F&amp;B': '零售与餐饮',
+    'Stock, orders and bookings that stop disagreeing with each other.': '让库存、订单和预约不再互相打架。',
+    'Online ordering and reservations': '线上点单与预约',
+    'POS and inventory that sync': 'POS 与库存同步',
+    'Loyalty and repeat campaigns': '会员与复购活动',
+    'Delivery platform reconciliation': '外卖平台对账',
+    'Explore Retail and F&amp;B solutions': '查看零售与餐饮方案',
+    'Education': '教育',
+    'Enrolment, attendance and fees, without the spreadsheet in the middle.': '招生、出勤和收费，不再靠表格居中协调。',
+    'Enrolment and class scheduling': '报名与排课',
+    'Parent portals and comms': '家长入口与沟通',
+    'Attendance and fee collection': '出勤与收费',
+    'Course and programme sites': '课程与项目网站',
+    'Explore Education solutions': '查看教育方案',
+    'Professional Services': '专业服务',
+    'Less admin between winning the work and actually getting paid.': '从赢得客户到收到款项，中间少一点行政消耗。',
+    'Client portals and documents': '客户入口与文档',
+    'Proposal and invoice automation': '方案与发票自动化',
+    'A CRM people actually use': '团队真的会用的 CRM',
+    'A site that wins enquiries': '能带来询盘的网站',
+    'Explore Professional Services solutions': '查看专业服务方案',
+    'Trades &amp; Home Services': '工程与上门服务',
+    'From enquiry to quote to job, without losing anyone in a thread.': '从询盘、报价到派工，不再把客户丢在聊天记录里。',
+    'Quote-to-job pipelines': '报价到工单流程',
+    'Scheduling and dispatch': '排班与派工',
+    'Photo reports and sign-offs': '照片报告与签收',
+    'Deposits and payments': '订金与付款',
+    'Explore Trades and Home Services solutions': '查看工程与上门服务方案',
+    'Not on this list?': '不在列表里？',
+    'The work underneath is the same. Tell us what is broken and we will tell you if we can fix it.': '底层工作其实相同。告诉我们哪里出问题，我们会告诉你是否能修。',
+    'Start Here': '从这里开始',
+    'Our path to building': '我们的建设路径',
+    'From the first call to still working a year later.': '从第一次通话，到一年后仍然稳定运行。',
+    'Survey': '勘察',
+    'We learn how your business actually works before touching anything.': '动手前，我们先理解你的业务实际如何运转。',
+    'You get a written picture of what is broken and what it is costing you.': '你会得到一份书面梳理，说明哪里坏了，以及正在造成什么成本。',
+    'Mark the route': '标出路线',
+    'Scope, cost and plan, agreed before anything gets built.': '先确定范围、成本和计划，再开始建设。',
+    'You get a fixed scope and a fixed price. No surprise invoices.': '你会得到固定范围和固定价格，不会突然冒出账单。',
+    'Stack': '搭建',
+    'We build it in the open, not behind a curtain.': '我们公开推进建设，不躲在幕后。',
+    'You get a live link from the first week, not a reveal at the end.': '第一周你就能看到实时链接，而不是最后才揭晓。',
+    'Stress the stack': '压力测试',
+    'We try to break it before your customers do.': '在客户遇到问题前，我们先尝试把它测坏。',
+    'You get something that works on their phone, not just on ours.': '你得到的是能在客户手机上运行的东西，不只是在我们设备上正常。',
+    'Plant the marker': '上线',
+    'We launch it, and we are the ones awake during the cutover.': '我们负责上线，切换时醒着盯住的人也是我们。',
+    'You get no lost data and no downtime anyone notices.': '你得到的是数据不丢、用户几乎无感的上线。',
+    'Keep the trail': '持续维护',
+    'We keep it running, and we keep people arriving.': '我们让系统持续运行，也让客户持续到来。',
+    'Most builds stop at launch. This is the step that makes the rest worth it.': '大多数项目止步于上线。这一步，才让前面的投入真正值得。',
+    "Nobody owns your tech. Let's fix that.": '没人真正负责你的技术。我们来修好这件事。',
+    'One call, and someone finally does.': '一次通话之后，终于有人接手。',
+    'No pitch, no obligation. You leave with a written summary either way.': '不推销，无义务。无论是否合作，你都会拿到一份书面总结。',
+    'Or email us at ': '也可以发邮件给我们：',
+    'Contact us': '联系我们',
+    'Either route reaches both of us. Expect a reply within one working day.': '两种方式都会同时到达我们这里。一个工作日内回复。',
+    'Get in touch': '取得联系',
+    'Tell us what is broken. We will tell you whether we can fix it, and what it would take.': '告诉我们哪里卡住了。我们会告诉你能否修复，以及需要什么。',
+    'Schedule a meeting': '预约会议',
+    'Pick a time that suits you. Thirty minutes, no pitch.': '选择适合你的时间。30 分钟，不推销。',
+    'Open the calendar': '打开日历',
+    'Email us': '给我们发邮件',
+    'If you would rather write it down, this reaches both of us.': '如果你更想写下来，这封邮件会同时到达我们这里。',
+    'Follow us': '关注我们',
+    'Send us a message': '发送消息',
+    'The more specific you are about what is breaking, the more useful our first reply will be.': '你描述得越具体，我们第一次回复就越有用。',
+    'Name': '姓名',
+    'Email': '邮箱',
+    'Phone': '电话',
+    'What do you need': '你需要什么',
+    'Choose one': '请选择',
+    'General enquiries': '一般咨询',
+    'Request a quote': '获取报价',
+    'Support': '支持',
+    'Partnership': '合作',
+    'Business': '公司 / 业务',
+    'What is breaking': '哪里卡住了',
+    'Send message': '发送消息',
+    'Message sent': '消息已发送',
+    'Thank you. We will come back to you within one working day, usually sooner.': '谢谢。我们会在一个工作日内回复，通常会更快。',
+    'Build your brief before we talk': '通话前先整理你的需求',
+    'Pick the software and interfaces you want, arrange them into the shape your business needs, and send it over. The call then starts from your plan, not a blank page.': '选择你想要的软件和界面，组合成适合业务的形状后发给我们。这样通话会从你的计划开始，而不是从空白页开始。',
+    'Opening soon': '即将开放',
+    'Open discovery': '打开需求梳理',
+    'Coming soon': '即将上线',
+    'Locked': '已锁定',
+    'Not connected yet. Email hello@cairnco.cloud in the meantime.': '表单暂未连接。请先发送邮件到 hello@cairnco.cloud。',
+    'Sending': '发送中',
+    'That did not send.': '消息没有发送成功。',
+    ' Please email hello@cairnco.cloud.': ' 请发送邮件到 hello@cairnco.cloud。',
+}
+
+
+def localize(text, lang):
+    cfg = LANGS[lang]
+    text = text.replace('<html lang="en">', '<html lang="%s">' % cfg['html'])
+    head, sep, body = text.partition('</head>')
+    if not sep:
+        head, body = '', text
+    body = rewrite_links(body, lang)
+    body = add_language_links(body, lang)
+    if lang == 'zh':
+        held = []
+        def hold_script(match):
+            held.append(match.group(0))
+            return '@@SCRIPT_%d@@' % (len(held) - 1)
+        body = re.sub(r'<script\b.*?</script>', hold_script, body, flags=re.S)
+        for src, dst in sorted(ZH_TEXT.items(), key=lambda item: len(item[0]), reverse=True):
+            body = body.replace(src, dst)
+        for i, script in enumerate(held):
+            body = body.replace('@@SCRIPT_%d@@' % i, script)
+    return head + sep + body if sep else body
+
+
+def rewrite_links(text, lang):
+    repl = {
+        'href="index.html"': 'href="%s/"' % LANGS[lang]['prefix'],
+        'href="contact.html"': 'href="%s/contact/"' % LANGS[lang]['prefix'],
+        'href="landmarks.html"': 'href="%s/landmarks/"' % LANGS[lang]['prefix'],
+        'href="kit.html"': 'href="%s/kit/"' % LANGS[lang]['prefix'],
+        'href="newsroom.html"': 'href="%s/newsroom/"' % LANGS[lang]['prefix'],
+    }
+    for a, b in repl.items():
+        text = text.replace(a, b)
+    return text
+
+
+def add_language_links(text, lang):
+    other = 'zh' if lang == 'en' else 'en'
+    here = LANGS[lang]['prefix']
+    there = LANGS[other]['prefix']
+    switch = ('<a href="%s/" hreflang="%s" lang="%s">%s</a>'
+              % (there, LANGS[other]['html'], LANGS[other]['html'], LANGS[other]['label']))
+    text = text.replace('<a class="btn" href="%s/contact/">' % here,
+                        switch + '\n    <a class="btn" href="%s/contact/">' % here,
+                        1)
+    text = text.replace('</div></footer>', '    %s\n  </div>\n</div></footer>' % switch, 1)
+    return text
+
+
+def chooser_page():
+    alts = '\n'.join(alternates('index.html'))
+    return '''<!DOCTYPE html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>%s</title>
+<meta name="description" content="%s">
+<link rel="canonical" href="%s/">
+%s
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#EDE6D8;color:#1F2A26;font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:min(92vw,34rem);padding:2rem}
+h1{margin:0 0 .75rem;font:600 clamp(2rem,6vw,3.1rem)/1.1 Georgia,serif}
+p{margin:.4rem 0 1.5rem;color:#5E6560}
+a{display:inline-block;margin:.25rem .5rem .25rem 0;padding:.78em 1.15em;border-radius:6px;background:#3D5A50;color:#F5F0E5;text-decoration:none}
+a+a{background:transparent;color:#2A3F38;border:1px solid rgba(61,90,80,.38)}
+</style>
+<script>
+(function(){
+  var langs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']).join(',');
+  location.replace(/^zh/i.test(langs)?'/zh/':'/en/');
+})();
+</script>
+</head>
+<body>
+<main>
+<h1>CairnCo</h1>
+<p>Choose your language. 请选择语言。</p>
+<a href="/en/" hreflang="en-SG" lang="en-SG">English</a>
+<a href="/zh/" hreflang="zh-Hans-SG" lang="zh-Hans-SG">中文</a>
+</main>
+</body>
+</html>
+''' % (_esc(LANGS['en']['root_title']), _esc(LANGS['en']['root_desc']), SITE, alts)
+
+
+def redirect_page(target, title='Redirecting | CairnCo'):
+    return '''<!DOCTYPE html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>%s</title>
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="%s%s">
+<meta http-equiv="refresh" content="0; url=%s">
+<script>location.replace('%s');</script>
+</head>
+<body><p><a href="%s">Continue to CairnCo</a></p></body>
+</html>
+''' % (_esc(title), SITE, target, target, target, target)
+
+
 # Wrangler serves this directory and nothing else, which is what keeps src/
 # and the docs off the public site. The same pages are also written to the
 # repo root so the site can still be opened straight off disk.
@@ -279,10 +632,13 @@ def finish(path, text):
     left = re.findall(r'__[A-Z_]+__', text)
     if left:
         sys.exit('unfilled placeholder(s) in %s: %s' % (path.name, ', '.join(sorted(set(left)))))
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding='utf-8')
     if DIST is not None:
-        (DIST / path.name).write_text(text, encoding='utf-8')
-    print('  %-16s %6d bytes' % (path.name, len(text)))
+        out = DIST / path.relative_to(ROOT)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding='utf-8')
+    print('  %-24s %6d bytes' % (str(path.relative_to(ROOT)), len(text)))
 
 
 home = read('index.template.html')
@@ -323,6 +679,8 @@ def fill(text, extra=None):
 
 
 DIST = ROOT / 'dist'
+if DIST.exists():
+    shutil.rmtree(DIST)
 DIST.mkdir(exist_ok=True)
 
 print('building cairnco.cloud')
@@ -330,14 +688,34 @@ _missing = [s for s, _ in SOCIAL_ICONS if s not in _found]
 if _missing:
     print('  social icons still placeholders: %s' % ', '.join(_missing))
     print('  drop the official SVGs into src/icons/ and rebuild')
-finish(ROOT / 'index.html', fill(home, {'__META__': head_meta('index.html')}))
-finish(ROOT / 'contact.html',
-       fill(read('contact.template.html'), {'__META__': head_meta('contact.html')}))
+
+finish(ROOT / 'index.html', chooser_page())
 
 sub = read('sub.template.html')
-for filename, title, name in HOLDING_PAGES:
-    finish(ROOT / filename,
-           fill(sub, {'__PAGE_NAME__': name, '__META__': head_meta(filename)}))
+pages = [
+    ('index.html', home, {}),
+    ('contact.html', read('contact.template.html'), {}),
+]
+for filename, slug, name in HOLDING_PAGES:
+    pages.append((filename, sub, {'__PAGE_NAME__': name}))
+
+for lang in LANGS:
+    for filename, template, extra in pages:
+        data = dict(extra)
+        if filename in ('landmarks.html', 'kit.html', 'newsroom.html') and lang == 'zh':
+            data['__PAGE_NAME__'] = localized_meta(filename, lang)['title'].split(' | ')[0]
+        data['__META__'] = head_meta(filename, lang)
+        html = localize(fill(template, data), lang)
+        finish(ROOT / page_out(lang, filename), html)
+
+legacy = {
+    'contact.html': '/en/contact/',
+    'landmarks.html': '/en/landmarks/',
+    'kit.html': '/en/kit/',
+    'newsroom.html': '/en/newsroom/',
+}
+for filename, target in legacy.items():
+    finish(ROOT / filename, redirect_page(target))
 
 # ---- robots.txt ----------------------------------------------------------
 # No robots.txt at all already allows every crawler, so spelling that out
