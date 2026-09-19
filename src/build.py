@@ -200,6 +200,53 @@ def write_sitemap(root, dist):
     return len(rows)
 
 
+# ---- metadata stripping -------------------------------------------------
+# Files that arrive here through the desktop bridge carry a C2PA content
+# credentials manifest: a signed record that Claude produced them. It is
+# roughly +7.7KB on every SVG and +5.8KB on every PNG, and because the icons
+# and contours are inlined it lands in the HTML too.
+#
+# The SOURCE files keep theirs. Only the published copies are stripped, so the
+# provenance record survives on disk and the bytes do not ship. This is the
+# same pass any build does on EXIF and colour profiles.
+_C2PA_SVG = re.compile(
+    r'\s*xmlns:c2pa="[^"]*"|<metadata>\s*<c2pa:manifest>.*?</c2pa:manifest>\s*</metadata>',
+    re.S)
+
+
+def strip_svg(text):
+    return _C2PA_SVG.sub('', text)
+
+
+def clean_png(raw):
+    """Return PNG bytes with only the chunks a browser needs."""
+    if raw[:8] != b'\x89PNG\r\n\x1a\n':
+        return raw
+    keep = {b'IHDR', b'PLTE', b'IDAT', b'IEND', b'tRNS', b'gAMA', b'cHRM', b'sRGB'}
+    out, i = [raw[:8]], 8
+    while i < len(raw) - 8:
+        ln = int.from_bytes(raw[i:i + 4], 'big')
+        typ = raw[i + 4:i + 8]
+        if typ in keep:
+            out.append(raw[i:i + 12 + ln])
+        i += 12 + ln
+        if typ == b'IEND':
+            break
+    return b''.join(out)
+
+
+def strip_png(src, dst):
+    raw = src.read_bytes()
+    dst.write_bytes(clean_png(raw))
+    return 0
+
+
+def strip_ico(src, dst):
+    """ICO holds PNGs inside it; nothing we add is stripped, so copy as-is."""
+    dst.write_bytes(src.read_bytes())
+    return 0
+
+
 def read(name):
     return (SRC / name).read_text(encoding='utf-8')
 
@@ -208,7 +255,8 @@ def asset(name):
     for d in ASSET_DIRS:
         f = d / name
         if f.is_file():
-            return f.read_text(encoding='utf-8').strip()
+            text = f.read_text(encoding='utf-8').strip()
+            return strip_svg(text) if name.endswith('.svg') else text
     sys.exit('missing asset: %s (looked in %s)' % (name, ', '.join(str(d) for d in ASSET_DIRS)))
 
 
@@ -254,10 +302,10 @@ for _slug, _ph in SOCIAL_ICONS:
     _svg = SRC / 'icons' / (_slug + '.svg')
     _png = SRC / 'icons' / (_slug + '.png')
     if _svg.is_file():
-        _mark = _svg.read_text(encoding='utf-8').strip()
+        _mark = strip_svg(_svg.read_text(encoding='utf-8').strip())
         _found.append(_slug)
     elif _png.is_file():
-        _b64 = base64.b64encode(_png.read_bytes()).decode('ascii')
+        _b64 = base64.b64encode(clean_png(_png.read_bytes())).decode('ascii')
         _mark = ('<span class="ico__m" style="--m:url(data:image/png;base64,%s)"></span>'
                  % _b64)
         _found.append(_slug)
@@ -322,14 +370,26 @@ for _d in (ROOT, DIST):
 _n = write_sitemap(ROOT, DIST)
 
 # ---- static assets: favicon, share card ----------------------------------
-import shutil
-for _a in ('favicon.ico', 'og-image.png', 'apple-touch-icon.png', 'icon-512.png'):
+_saved = 0
+for _a in ('favicon.ico', 'favicon-32.png', 'og-image.png',
+           'apple-touch-icon.png', 'icon-512.png'):
     _src = SRC / _a
-    if _src.is_file():
-        for _d in (ROOT, DIST):
-            shutil.copyfile(_src, _d / _a)
-        print('  %-16s %6d bytes' % (_a, _src.stat().st_size))
-    else:
+    if not _src.is_file():
         print('  %-16s MISSING' % _a)
+        continue
+    _before = _src.stat().st_size
+    for _d in (ROOT, DIST):
+        if _a.endswith('.png'):
+            strip_png(_src, _d / _a)
+        elif _a.endswith('.ico'):
+            strip_ico(_src, _d / _a)
+        else:
+            (_d / _a).write_text(strip_svg(_src.read_text(encoding='utf-8')), encoding='utf-8')
+    _after = (DIST / _a).stat().st_size
+    _saved += _before - _after
+    print('  %-16s %6d bytes%s' % (_a, _after,
+          '  (-%d stripped)' % (_before - _after) if _before != _after else ''))
+if _saved:
+    print('  %-16s %6d bytes of metadata removed from the published assets' % ('', _saved))
 print('  %-16s %6d bytes' % ('robots.txt', len(ROBOTS)))
 print('  %-16s %6d urls' % ('sitemap.xml', _n))
