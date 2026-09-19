@@ -143,6 +143,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 @media (max-width:700px){
   body{font-size:16px}
   .wrap{padding-inline:20px}
+  .topo--dense{opacity:.22}
+  .topo--open{opacity:.16}
   .sec{padding-block:var(--s5)}
   /* the closing and the footer share one screen */
   .page .close{padding-block:var(--s5) var(--s4)}
@@ -1084,6 +1086,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   var ctx=cv.getContext('2d');
   var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var noHover=window.matchMedia('(hover: none)').matches;
+  var narrow=window.matchMedia('(max-width: 700px)');
 
   var GW=120, GH=68;            // sampling grid
   var BW=GW+72, BH=GH+48;       // larger base field; we read a drifting window of it
@@ -1189,11 +1192,15 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     ctx.clearRect(0,0,W,H);
     ctx.lineCap='round';
     var lo=-1.15, hi=2.25;
-    for(var n=0;n<LEVELS;n++){
-      var lv=lo+(hi-lo)*(n/(LEVELS-1));
-      var major=(n%4===0);
+    var levels=narrow.matches ? 12 : LEVELS;
+    var majorEvery=narrow.matches ? 3 : 4;
+    var majorInk=narrow.matches ? 'rgba(61,90,80,.30)' : 'rgba(61,90,80,.46)';
+    var minorInk=narrow.matches ? 'rgba(61,90,80,.17)' : 'rgba(61,90,80,.30)';
+    for(var n=0;n<levels;n++){
+      var lv=lo+(hi-lo)*(n/(levels-1));
+      var major=(n%majorEvery===0);
       ctx.beginPath();
-      ctx.strokeStyle= major ? 'rgba(61,90,80,.46)' : 'rgba(61,90,80,.30)';
+      ctx.strokeStyle= major ? majorInk : minorInk;
       ctx.lineWidth= major ? 1.5 : 1;
       trace(lv);
       ctx.stroke();
