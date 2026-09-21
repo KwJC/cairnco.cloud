@@ -77,7 +77,7 @@ LANGS = {
         html='en-SG',
         schema='en',
         locale='en_SG',
-        prefix='/en',
+        prefix='',
         home='Home',
         root_title='Choose Language | CairnCo',
         root_desc='Choose English or Chinese for CairnCo.',
@@ -169,8 +169,11 @@ def page_url(lang, filename):
 
 
 def page_out(lang, filename):
+    # The default language is served from the site root, so it gets no folder
+    # of its own. Any other language keeps its prefix as a folder.
     slug = PAGE_META[filename]['slug']
-    return pathlib.Path(lang) / (slug or '') / 'index.html'
+    base = LANGS[lang]['prefix'].strip('/')
+    return pathlib.Path(base) / (slug or '') / 'index.html'
 
 
 def localized_meta(filename, lang):
@@ -689,8 +692,6 @@ if _missing:
     print('  social icons still placeholders: %s' % ', '.join(_missing))
     print('  drop the official SVGs into src/icons/ and rebuild')
 
-finish(ROOT / 'index.html', chooser_page())
-
 sub = read('sub.template.html')
 pages = [
     ('index.html', home, {}),
@@ -708,14 +709,22 @@ for lang in LANGS:
         html = localize(fill(template, data), lang)
         finish(ROOT / page_out(lang, filename), html)
 
+# Redirects, not content. Two generations of old address are kept alive:
+# the original flat .html files, and the /en/ prefix that briefly held the
+# English pages. Both are noindex so they never compete with the real page.
 legacy = {
-    'contact.html': '/en/contact/',
-    'landmarks.html': '/en/landmarks/',
-    'kit.html': '/en/kit/',
-    'newsroom.html': '/en/newsroom/',
+    'contact.html': '/contact/',
+    'landmarks.html': '/landmarks/',
+    'kit.html': '/kit/',
+    'newsroom.html': '/newsroom/',
 }
 for filename, target in legacy.items():
     finish(ROOT / filename, redirect_page(target))
+
+for _f in PAGE_META:
+    _slug = PAGE_META[_f]['slug']
+    _to = '/' + (_slug + '/' if _slug else '')
+    finish(ROOT / 'en' / (_slug or '') / 'index.html', redirect_page(_to))
 
 # ---- robots.txt ----------------------------------------------------------
 # No robots.txt at all already allows every crawler, so spelling that out
@@ -769,5 +778,46 @@ for _a in ('favicon.ico', 'favicon-32.png', 'og-image.png',
           '  (-%d stripped)' % (_before - _after) if _before != _after else ''))
 if _saved:
     print('  %-16s %6d bytes of metadata removed from the published assets' % ('', _saved))
+# ---- search-engine ownership proofs --------------------------------------
+# Google and Bing prove you control this domain by looking for a file they
+# issued, served byte-for-byte at the site root. Copied verbatim, never
+# templated, never localized, and deliberately kept out of the sitemap.
+# Removing one un-verifies the property, so they live in src/ and are
+# re-copied on every build.
+#
+# DIST is wiped at the start of every build, so only ROOT can accumulate a
+# stale proof. A retired proof keeps a retired account verified, so it is
+# swept out. Deletion can be blocked on some hosts, hence the fallback.
+VERIFY_GLOBS = ('google*.html', 'BingSiteAuth.xml', 'yandex_*.html')
+
+_current = set()
+for _g in VERIFY_GLOBS:
+    _current.update(f.name for f in SRC.glob(_g))
+
+_park = SRC / '_superseded'
+for _g in VERIFY_GLOBS:
+    for _old in sorted(ROOT.glob(_g)):
+        if _old.name in _current:
+            continue
+        try:
+            _old.unlink()
+            print('  %-16s removed (superseded ownership proof)' % _old.name[:16])
+        except OSError:
+            _park.mkdir(exist_ok=True)
+            _old.replace(_park / _old.name)
+            print('  %-16s parked in src/_superseded/' % _old.name[:16])
+
+_v = []
+for _g in VERIFY_GLOBS:
+    for _f in sorted(SRC.glob(_g)):
+        _raw = _f.read_bytes()
+        for _d in (ROOT, DIST):
+            (_d / _f.name).write_bytes(_raw)
+        _v.append(_f.name)
+        print('  %-16s %6d bytes  (ownership proof, copied verbatim)'
+              % (_f.name[:16], len(_raw)))
+if not _v:
+    print('  %-16s none found in src/' % 'verification')
+
 print('  %-16s %6d bytes' % ('robots.txt', len(ROBOTS)))
 print('  %-16s %6d urls' % ('sitemap.xml', _n))

@@ -33,3 +33,9 @@ package-lock.json
 
 # Worker publish directory, regenerate with: python src/build.py
 dist/
+
+# Retired search-engine ownership proofs, kept locally for reference only
+src/_superseded/
+
+# scratch: files parked for you to delete, never part of the site
+_to_delete/

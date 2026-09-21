@@ -287,6 +287,123 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .creds span{display:flex;align-items:center;gap:.5rem}
 .creds span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--teal);opacity:.55;flex:none}
 
+/* ---------- arrival sequence ----------
+   Two versions, picked by the head script and carried on <html>:
+     .intro-full   first home page of a session. Types Kehrn, deletes it, types
+                   CairnCo, walks the wordmark up to the header, then rains the
+                   landmark pins in behind the nav and leaves them toppled.
+     .intro-quiet  every later return to home. The wordmark is already formed,
+                   the caption clears, the wordmark walks. No pins, no typing.
+   Neither class is set when JS is off, storage is blocked, or the visitor asked
+   for reduced motion, and then every rule below is inert: the overlay stays
+   display:none and the page behaves exactly as it does today. That is why the
+   hero is hidden by .intro-full/.intro-quiet rather than by default. */
+.intro{display:none}
+.intro-full .intro,.intro-quiet .intro{display:flex;position:fixed;inset:0;z-index:70;
+  flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.intro__wash{position:absolute;inset:0;
+  background:radial-gradient(ellipse 78% 62% at 50% 50%,
+    rgba(237,230,216,.93) 0%,rgba(237,230,216,.42) 58%,rgba(237,230,216,0) 100%);
+  transition:opacity 1.05s var(--ease)}
+.intro__mark{position:relative;margin:0;font-family:var(--display);font-weight:600;
+  font-size:clamp(2.4rem,5.6vw,4.2rem);letter-spacing:-.02em;color:var(--ink);
+  white-space:nowrap;transform-origin:50% 50%;
+  transition:transform 1.2s var(--ease)}
+.intro__co{color:var(--rust)}
+.intro__caret{display:inline-block;width:.055em;height:.78em;margin-left:.06em;
+  background:var(--rust);vertical-align:baseline;animation:introBlink .9s steps(1,end) infinite}
+@keyframes introBlink{0%,48%{opacity:1}50%,98%{opacity:0}100%{opacity:1}}
+.intro.is-done .intro__caret{display:none}
+.intro__cap{position:relative;margin:1.5rem 0 0;font-family:var(--mono);font-size:.7rem;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--teal);
+  opacity:0;transform:translateY(6px);transition:opacity .56s var(--ease),transform .56s var(--ease)}
+.intro__cap::before{content:"";position:absolute;left:50%;top:-1.05rem;width:54px;height:1px;
+  transform:translateX(-50%);background:rgba(61,90,80,.35)}
+.intro.is-cap .intro__cap{opacity:1;transform:none}
+.intro.is-capout .intro__cap{opacity:0;transform:translateY(-4px);transition-duration:.52s}
+/* the walk: the target is measured off the real header mark, so it lands on it
+   however the viewport is sized and whatever language the page is in */
+.intro.is-walk .intro__mark{transform:translate(var(--wx,0px),var(--wy,0px)) scale(var(--ws,.42))}
+.intro.is-walk .intro__wash{opacity:0}
+.intro.is-gone{opacity:0;transition:opacity .2s linear}
+
+/* the header wordmark is held back until the walking one lands on top of it */
+.intro-full .nav .mark,.intro-quiet .nav .mark{opacity:0}
+.intro-done .nav .mark{opacity:1;transition:opacity .12s linear}
+.intro-full .nav__links,.intro-quiet .nav__links{opacity:0;transition:opacity .75s var(--ease)}
+.intro-revealing .nav__links{opacity:1}
+
+/* the hero arrives underneath, a beat after the wordmark has left the middle */
+.intro-full .hero__text>*,.intro-quiet .hero__text>*{opacity:0;transform:translateY(18px)}
+.intro-revealing .hero__text>*{opacity:1;transform:none;
+  transition:opacity .75s var(--ease),transform .75s var(--ease)}
+.intro-revealing .hero__text>*:nth-child(2){transition-delay:.225s}
+.intro-revealing .hero__text>*:nth-child(3){transition-delay:.225s}
+.intro-revealing .hero__text>*:nth-child(4){transition-delay:.45s}
+.intro-full .hero__hint,.intro-quiet .hero__hint,
+.intro-full .creds,.intro-quiet .creds{opacity:0}
+/* On a return there is no drop animation to keep the pins hidden, so the map
+   itself is held back; on a first visit the pins manage their own opacity and
+   the map must stay visible for them to fall onto. */
+.intro-quiet .hero__map{opacity:0}
+.intro-revealing .hero__map{opacity:1;transition:opacity .6s var(--ease)}
+.intro-revealing .hero__hint,.intro-revealing .creds{opacity:1;
+  transition:opacity .6s var(--ease) .75s}
+
+/* pins land toppled on a first visit, so hovering stands one back up on its own
+   tip. On a return there is no .intro-full and the normal lift applies instead. */
+.pin__stick{display:block;transform-origin:50% 100%}
+.intro-full .hero__map .pin__svg{transform-origin:50% 100%}
+.intro-full .hero__map .pin:hover .pin__svg,
+.intro-full .hero__map .pin:focus-visible .pin__svg{transform:rotate(calc(-1 * var(--rot,0deg)))}
+.intro-full .hero__map .pin:hover::after,
+.intro-full .hero__map .pin:focus-visible::after{transform:translateX(-50%) scale(1.1);opacity:.6}
+
+/* ==PINS:START== generated by src/pins_anim.py, do not edit by hand ==*/
+@keyframes pinDrop0{0%,77.44%{opacity:0;transform:translate(calc(-50% + 60.72px),calc(-100% - 96vh))}77.45%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 60.72px),calc(-100% - 96vh))}85.41%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 60.72px),calc(-100%))}87.45%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 44.93px),calc(-100% - 34px))}89.14%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 29.14px),calc(-100%))}90.51%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 20.64px),calc(-100% - 15px))}91.64%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 12.14px),calc(-100%))}92.51%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 8.2px),calc(-100% - 6px))}93.22%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 4.25px),calc(-100%))}93.72%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 2.13px),calc(-100% - 2px))}94.13%,100%{opacity:1;transform:translate(calc(-50%),calc(-100%))}}
+@keyframes pinTumble0{0%,85.41%{transform:rotate(0deg) scaleY(1.06)}87.45%{transform:rotate(-26.21deg) scaleY(1.03)}89.14%{transform:rotate(-42.58deg) scaleY(0.94)}90.51%{transform:rotate(-50.31deg) scaleY(1.02)}91.64%{transform:rotate(-57.57deg) scaleY(0.97)}92.51%{transform:rotate(-60.8deg) scaleY(1.01)}93.22%{transform:rotate(-63.97deg) scaleY(0.99)}93.72%{transform:rotate(-65.64deg) scaleY(1)}94.13%,100%{transform:rotate(-67.3deg) scaleY(1)}}
+@keyframes pinShadow0{0%,77.45%{opacity:0;animation-timing-function:cubic-bezier(0.4329,0.0000,0.7757,0.3472);transform:translate(-50%,calc(96vh)) scale(0.15,0.5)}83.58%{opacity:0;animation-timing-function:cubic-bezier(0.6466,0.2404,1.0000,0.5775);transform:translate(-50%,calc(67.2vh)) scale(0.18,0.5)}85.41%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.7,0.62)}87.45%{opacity:.26;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 34px)) scale(0.36,1)}89.14%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.91,0.62)}90.51%{opacity:.42;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 15px)) scale(0.71,1)}91.64%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.82,0.62)}92.51%{opacity:.58;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 6px)) scale(1.05,1)}93.22%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.71,0.62)}93.72%{opacity:.72;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 2px)) scale(1.31,1)}94.13%,100%{opacity:.62;transform:translate(-50%,0px) scale(1.55,0.5)}}
+@keyframes pinDrop1{0%,70.96%{opacity:0;transform:translate(calc(-50% + -52.38px),calc(-100% - 96vh))}70.97%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -52.38px),calc(-100% - 96vh))}78.93%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -52.38px),calc(-100%))}80.97%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -37.19px),calc(-100% - 34px))}82.67%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -22px),calc(-100%))}84.03%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -14.67px),calc(-100% - 15px))}85.17%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -7.33px),calc(-100%))}86.03%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -3.67px),calc(-100% - 6px))}86.75%,100%{opacity:1;transform:translate(calc(-50%),calc(-100%))}}
+@keyframes pinTumble1{0%,78.93%{transform:rotate(0deg) scaleY(1.06)}80.97%{transform:rotate(24.05deg) scaleY(1.03)}82.67%{transform:rotate(39.07deg) scaleY(0.94)}84.03%{transform:rotate(45.45deg) scaleY(1.02)}85.17%{transform:rotate(51.47deg) scaleY(0.97)}86.03%{transform:rotate(54.37deg) scaleY(1.01)}86.75%,100%{transform:rotate(57.2deg) scaleY(1)}}
+@keyframes pinShadow1{0%,70.97%{opacity:0;animation-timing-function:cubic-bezier(0.4329,0.0000,0.7757,0.3472);transform:translate(-50%,calc(96vh)) scale(0.15,0.5)}77.1%{opacity:0;animation-timing-function:cubic-bezier(0.6466,0.2404,1.0000,0.5775);transform:translate(-50%,calc(67.2vh)) scale(0.18,0.5)}78.93%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.7,0.62)}80.97%{opacity:.26;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 34px)) scale(0.37,1)}82.67%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.95,0.62)}84.03%{opacity:.42;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 15px)) scale(0.72,1)}85.17%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.85,0.62)}86.03%{opacity:.58;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 6px)) scale(1.07,1)}86.75%,100%{opacity:.62;transform:translate(-50%,0px) scale(1.55,0.5)}}
+@keyframes pinDrop2{0%,66.64%{opacity:0;transform:translate(calc(-50% + -53.29px),calc(-100% - 96vh))}66.66%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -53.29px),calc(-100% - 96vh))}74.61%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -53.29px),calc(-100%))}76.66%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -35.7px),calc(-100% - 34px))}78.35%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -18.12px),calc(-100%))}79.71%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -9.06px),calc(-100% - 15px))}80.85%,100%{opacity:1;transform:translate(calc(-50%),calc(-100%))}}
+@keyframes pinTumble2{0%,74.61%{transform:rotate(0deg) scaleY(1.06)}76.66%{transform:rotate(27.06deg) scaleY(1.03)}78.35%{transform:rotate(43.96deg) scaleY(0.94)}79.71%{transform:rotate(51.61deg) scaleY(1.02)}80.85%,100%{transform:rotate(58.8deg) scaleY(1)}}
+@keyframes pinShadow2{0%,66.66%{opacity:0;animation-timing-function:cubic-bezier(0.4329,0.0000,0.7757,0.3472);transform:translate(-50%,calc(96vh)) scale(0.15,0.5)}72.78%{opacity:0;animation-timing-function:cubic-bezier(0.6466,0.2404,1.0000,0.5775);transform:translate(-50%,calc(67.2vh)) scale(0.18,0.5)}74.61%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.7,0.62)}76.66%{opacity:.26;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 34px)) scale(0.38,1)}78.35%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(2,0.62)}79.71%{opacity:.42;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 15px)) scale(0.74,1)}80.85%,100%{opacity:.62;transform:translate(-50%,0px) scale(1.55,0.5)}}
+@keyframes pinDrop3{0%,79.6%{opacity:0;transform:translate(calc(-50% + 63.38px),calc(-100% - 96vh))}79.61%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 63.38px),calc(-100% - 96vh))}87.57%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 63.38px),calc(-100%))}89.61%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 46.9px),calc(-100% - 34px))}91.3%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 30.42px),calc(-100%))}92.67%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 21.55px),calc(-100% - 15px))}93.8%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 12.68px),calc(-100%))}94.67%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 8.56px),calc(-100% - 6px))}95.38%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 4.44px),calc(-100%))}95.88%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 2.22px),calc(-100% - 2px))}96.29%,100%{opacity:1;transform:translate(calc(-50%),calc(-100%))}}
+@keyframes pinTumble3{0%,87.57%{transform:rotate(0deg) scaleY(1.06)}89.61%{transform:rotate(-23.29deg) scaleY(1.03)}91.3%{transform:rotate(-37.84deg) scaleY(0.94)}92.67%{transform:rotate(-44.71deg) scaleY(1.02)}93.8%{transform:rotate(-51.15deg) scaleY(0.97)}94.67%{transform:rotate(-54.03deg) scaleY(1.01)}95.38%{transform:rotate(-56.84deg) scaleY(0.99)}95.88%{transform:rotate(-58.33deg) scaleY(1)}96.29%,100%{transform:rotate(-59.8deg) scaleY(1)}}
+@keyframes pinShadow3{0%,79.61%{opacity:0;animation-timing-function:cubic-bezier(0.4329,0.0000,0.7757,0.3472);transform:translate(-50%,calc(96vh)) scale(0.15,0.5)}85.74%{opacity:0;animation-timing-function:cubic-bezier(0.6466,0.2404,1.0000,0.5775);transform:translate(-50%,calc(67.2vh)) scale(0.18,0.5)}87.57%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.7,0.62)}89.61%{opacity:.26;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 34px)) scale(0.36,1)}91.3%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.91,0.62)}92.67%{opacity:.42;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 15px)) scale(0.71,1)}93.8%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.82,0.62)}94.67%{opacity:.58;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 6px)) scale(1.05,1)}95.38%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.71,0.62)}95.88%{opacity:.72;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 2px)) scale(1.31,1)}96.29%,100%{opacity:.62;transform:translate(-50%,0px) scale(1.55,0.5)}}
+@keyframes pinDrop4{0%,73.12%{opacity:0;transform:translate(calc(-50% + -71.8px),calc(-100% - 96vh))}73.13%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -71.8px),calc(-100% - 96vh))}81.09%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -71.8px),calc(-100%))}83.13%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -50.98px),calc(-100% - 34px))}84.83%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -30.16px),calc(-100%))}86.19%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -20.1px),calc(-100% - 15px))}87.33%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -10.05px),calc(-100%))}88.19%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -5.03px),calc(-100% - 6px))}88.91%,100%{opacity:1;transform:translate(calc(-50%),calc(-100%))}}
+@keyframes pinTumble4{0%,81.09%{transform:rotate(0deg) scaleY(1.06)}83.13%{transform:rotate(35.9deg) scaleY(1.03)}84.83%{transform:rotate(58.33deg) scaleY(0.94)}86.19%{transform:rotate(67.86deg) scaleY(1.02)}87.33%{transform:rotate(76.84deg) scaleY(0.97)}88.19%{transform:rotate(81.17deg) scaleY(1.01)}88.91%,100%{transform:rotate(85.4deg) scaleY(1)}}
+@keyframes pinShadow4{0%,73.13%{opacity:0;animation-timing-function:cubic-bezier(0.4329,0.0000,0.7757,0.3472);transform:translate(-50%,calc(96vh)) scale(0.15,0.5)}79.26%{opacity:0;animation-timing-function:cubic-bezier(0.6466,0.2404,1.0000,0.5775);transform:translate(-50%,calc(67.2vh)) scale(0.18,0.5)}81.09%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.7,0.62)}83.13%{opacity:.26;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 34px)) scale(0.37,1)}84.83%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.95,0.62)}86.19%{opacity:.42;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 15px)) scale(0.72,1)}87.33%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.85,0.62)}88.19%{opacity:.58;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 6px)) scale(1.07,1)}88.91%,100%{opacity:.62;transform:translate(-50%,0px) scale(1.55,0.5)}}
+@keyframes pinDrop5{0%,75.28%{opacity:0;transform:translate(calc(-50% + -46.88px),calc(-100% - 96vh))}75.29%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -46.88px),calc(-100% - 96vh))}83.25%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -46.88px),calc(-100%))}85.29%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -33.28px),calc(-100% - 34px))}86.99%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -19.69px),calc(-100%))}88.35%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -13.13px),calc(-100% - 15px))}89.49%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + -6.56px),calc(-100%))}90.35%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + -3.28px),calc(-100% - 6px))}91.07%,100%{opacity:1;transform:translate(calc(-50%),calc(-100%))}}
+@keyframes pinTumble5{0%,83.25%{transform:rotate(0deg) scaleY(1.06)}85.29%{transform:rotate(36.28deg) scaleY(1.03)}86.99%{transform:rotate(58.94deg) scaleY(0.94)}88.35%{transform:rotate(68.57deg) scaleY(1.02)}89.49%{transform:rotate(77.65deg) scaleY(0.97)}90.35%{transform:rotate(82.03deg) scaleY(1.01)}91.07%,100%{transform:rotate(86.3deg) scaleY(1)}}
+@keyframes pinShadow5{0%,75.29%{opacity:0;animation-timing-function:cubic-bezier(0.4329,0.0000,0.7757,0.3472);transform:translate(-50%,calc(96vh)) scale(0.15,0.5)}81.42%{opacity:0;animation-timing-function:cubic-bezier(0.6466,0.2404,1.0000,0.5775);transform:translate(-50%,calc(67.2vh)) scale(0.18,0.5)}83.25%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.7,0.62)}85.29%{opacity:.26;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 34px)) scale(0.37,1)}86.99%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.95,0.62)}88.35%{opacity:.42;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 15px)) scale(0.72,1)}89.49%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.85,0.62)}90.35%{opacity:.58;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 6px)) scale(1.07,1)}91.07%,100%{opacity:.62;transform:translate(-50%,0px) scale(1.55,0.5)}}
+@keyframes pinDrop6{0%,68.8%{opacity:0;transform:translate(calc(-50% + 71.37px),calc(-100% - 96vh))}68.82%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 71.37px),calc(-100% - 96vh))}76.77%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 71.37px),calc(-100%))}78.82%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 47.82px),calc(-100% - 34px))}80.51%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(calc(-50% + 24.27px),calc(-100%))}81.87%{opacity:1;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(calc(-50% + 12.13px),calc(-100% - 15px))}83.01%,100%{opacity:1;transform:translate(calc(-50%),calc(-100%))}}
+@keyframes pinTumble6{0%,76.77%{transform:rotate(0deg) scaleY(1.06)}78.82%{transform:rotate(-29.91deg) scaleY(1.03)}80.51%{transform:rotate(-48.6deg) scaleY(0.94)}81.87%{transform:rotate(-57.05deg) scaleY(1.02)}83.01%,100%{transform:rotate(-65deg) scaleY(1)}}
+@keyframes pinShadow6{0%,68.82%{opacity:0;animation-timing-function:cubic-bezier(0.4329,0.0000,0.7757,0.3472);transform:translate(-50%,calc(96vh)) scale(0.15,0.5)}74.94%{opacity:0;animation-timing-function:cubic-bezier(0.6466,0.2404,1.0000,0.5775);transform:translate(-50%,calc(67.2vh)) scale(0.18,0.5)}76.77%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(1.7,0.62)}78.82%{opacity:.26;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 34px)) scale(0.38,1)}80.51%{opacity:1;animation-timing-function:cubic-bezier(0,.78,.32,1);transform:translate(-50%,0px) scale(2,0.62)}81.87%{opacity:.42;animation-timing-function:cubic-bezier(.62,0,1,.36);transform:translate(-50%,calc(0px + 15px)) scale(0.74,1)}83.01%,100%{opacity:.62;transform:translate(-50%,0px) scale(1.55,0.5)}}
+.intro-full .hero__map .pin:nth-of-type(1){--rot:-67.3deg;animation:pinDrop0 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(1) .pin__stick{animation:pinTumble0 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(1)::after{animation:pinShadow0 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(2){--rot:57.2deg;animation:pinDrop1 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(2) .pin__stick{animation:pinTumble1 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(2)::after{animation:pinShadow1 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(3){--rot:58.8deg;animation:pinDrop2 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(3) .pin__stick{animation:pinTumble2 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(3)::after{animation:pinShadow2 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(4){--rot:-59.8deg;animation:pinDrop3 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(4) .pin__stick{animation:pinTumble3 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(4)::after{animation:pinShadow3 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(5){--rot:85.4deg;animation:pinDrop4 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(5) .pin__stick{animation:pinTumble4 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(5)::after{animation:pinShadow4 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(6){--rot:86.3deg;animation:pinDrop5 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(6) .pin__stick{animation:pinTumble5 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(6)::after{animation:pinShadow5 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(7){--rot:-65deg;animation:pinDrop6 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(7) .pin__stick{animation:pinTumble6 8800ms linear both}
+.intro-full .hero__map .pin:nth-of-type(7)::after{animation:pinShadow6 8800ms linear both}
+/* ==PINS:END== */
+
 /* ---------- section rules ---------- */
 .sec,.close,.creds-sec{position:relative}
 .sec::before,.close::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
@@ -661,6 +778,17 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   .who__door{margin-top:var(--s4);padding-block:0 var(--s6)}
 }
 </style>
+<script>
+/* Chooses the intro before first paint, so the hero never flashes up and then
+   gets covered. No JS, reduced motion, or blocked storage all mean no class is
+   set at all, and the page simply renders as it always has. */
+(function(){try{
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var seen = sessionStorage.getItem('cc-intro');
+  document.documentElement.classList.add(seen ? 'intro-quiet' : 'intro-full');
+  sessionStorage.setItem('cc-intro','1');
+}catch(e){}})();
+</script>
 </head>
 
 <body>
@@ -668,6 +796,16 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 <linearGradient id="stone0" x1=".22" y1="0" x2=".72" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone1" x1=".05" y1=".12" x2=".9" y2=".86"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone2" x1=".34" y1="0" x2=".56" y2="1"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient><linearGradient id="stone3" x1=".12" y1="0" x2=".95" y2=".7"><stop offset="0" stop-color="#EFEADD"/><stop offset=".44" stop-color="#DCD7C8"/><stop offset=".46" stop-color="#BFC3B4"/><stop offset=".82" stop-color="#A5AB9C"/><stop offset="1" stop-color="#8E9587"/></linearGradient></defs></svg>
 
 <div class="page page--home">
+
+<!-- The arrival sequence. Full version on the first home page of a session,
+     quiet version on every return. Hidden unless the head script opted in. -->
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro__wash"></div>
+  <p class="intro__mark" id="introMark"><span id="introLead"></span><span
+     class="intro__co" id="introTail"></span><i class="intro__caret" id="introCaret"></i></p>
+  <p class="intro__cap" id="introCap">You run the business.</p>
+</div>
+
 <!--==NAV:START==-->
 <header class="nav"><div class="wrap nav__in">
   <a class="mark" href="index.html">Cairn<span>Co</span></a>
@@ -710,14 +848,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
       </div>
     </div>
     <div class="hero__map" id="heroMap">
-      <button class="pin" type="button" style="--x:24%;--y:70%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Websites</span></button>
-      <button class="pin" type="button" style="--x:45%;--y:34%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Internal Tools</span></button>
-      <button class="pin" type="button" style="--x:63%;--y:57%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">AI Workflows</span></button>
-      <button class="pin" type="button" style="--x:81%;--y:26%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Automation</span></button>
-      <button class="pin" type="button" style="--x:18%;--y:45%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">SEO &amp; AEO</span></button>
-      <button class="pin" type="button" style="--x:52%;--y:86%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Marketing</span></button>
+      <button class="pin" type="button" style="--x:24%;--y:70%"><span class="pin__stick"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg></span><span class="pin__label">Websites</span></button>
+      <button class="pin" type="button" style="--x:45%;--y:34%"><span class="pin__stick"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg></span><span class="pin__label">Internal Tools</span></button>
+      <button class="pin" type="button" style="--x:63%;--y:57%"><span class="pin__stick"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg></span><span class="pin__label">AI Workflows</span></button>
+      <button class="pin" type="button" style="--x:81%;--y:26%"><span class="pin__stick"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg></span><span class="pin__label">Automation</span></button>
+      <button class="pin" type="button" style="--x:18%;--y:45%"><span class="pin__stick"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg></span><span class="pin__label">SEO &amp; AEO</span></button>
+      <button class="pin" type="button" style="--x:52%;--y:86%"><span class="pin__stick"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg></span><span class="pin__label">Marketing</span></button>
       <p class="hero__hint">Hover a pin to see what we build</p>
-      <button class="pin" type="button" style="--x:88%;--y:74%"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg><span class="pin__label">Cloud</span></button>
+      <button class="pin" type="button" style="--x:88%;--y:74%"><span class="pin__stick"><svg class="pin__svg" viewBox="0 0 26 36" aria-hidden="true"><path class="pin__body" d="M13 36C13 36 24 21.6 24 13A11 11 0 1 0 2 13C2 21.6 13 36 13 36Z"/><circle class="pin__eye" cx="13" cy="12.6" r="4.1"/></svg></span><span class="pin__label">Cloud</span></button>
     </div>
   </div>
   <div class="wrap creds">
@@ -987,6 +1125,94 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 </div>
 
 <script>
+/* ---------- arrival sequence ----------
+   The head script already decided which version runs and put the class on
+   <html>; this only drives it. Everything visual is CSS, so if any of this
+   throws the page is still readable -- the teardown runs in a finally-style
+   timer that cannot be skipped. */
+(function(){
+  var root = document.documentElement, intro = document.getElementById('intro');
+  var full = root.classList.contains('intro-full');
+  var quiet = root.classList.contains('intro-quiet');
+  if(!intro || !(full || quiet)) return;
+
+  var lead = document.getElementById('introLead'),
+      tail = document.getElementById('introTail'),
+      mark = document.getElementById('introMark'),
+      real = document.querySelector('.nav .mark');
+
+  /* Kehrn is how "cairn" actually sounds, so the wordmark types the mistake
+     first and corrects itself. Times are ms from the start of the sequence. */
+  var WRONG = 'Kehrn', LEAD = 'Cairn', TAIL = 'Co';
+  /* Straight from the boards. Board 7 is a 10s loop, board 4 a 6s loop, and
+     each number here is that board's keyframe percentage back in milliseconds,
+     so the site plays at exactly the pace that was signed off. */
+  var T = full
+    ? { wrongIn:[150,562], wrongHold:1125, wrongOut:[1125,1537], beat:1800,
+        leadIn:[1800,2212], pause:2925, tailIn:[2925,3262],
+        cap:3262, capOut:4650, walk:4650, reveal:5250, land:5850, off:6050 }
+    : { cap:0, capOut:1440, walk:1680, reveal:2280, land:3480, off:3680 };
+
+  function seg(t,a,b){ return t<=a ? 0 : (t>=b ? 1 : (t-a)/(b-a)); }
+  function cut(str,f){ return str.slice(0, Math.ceil(f*str.length)); }
+
+  var t0 = performance.now(), raf = 0, timers = [], finished = false;
+
+  function type(){
+    var t = performance.now() - t0, l = '', k = '';
+    if(t < T.wrongHold)      l = cut(WRONG, seg(t,T.wrongIn[0],T.wrongIn[1]));
+    else if(t < T.beat)      l = WRONG.slice(0, WRONG.length - Math.ceil(seg(t,T.wrongOut[0],T.wrongOut[1])*WRONG.length));
+    else { l = cut(LEAD, seg(t,T.leadIn[0],T.leadIn[1]));
+           k = cut(TAIL, seg(t,T.pause,T.tailIn[1])); }
+    if(lead.textContent !== l) lead.textContent = l;
+    if(tail.textContent !== k) tail.textContent = k;
+    if(t < T.tailIn[1]) raf = requestAnimationFrame(type);
+    else { lead.textContent = LEAD; tail.textContent = TAIL; intro.classList.add('is-done'); }
+  }
+
+  /* The walk target is measured off the real header wordmark rather than
+     hard-coded, so it lands on it at any viewport width and in any language.
+     Measured with the caret already hidden, or it would widen the box. */
+  function walk(){
+    try{
+      intro.classList.add('is-done');
+      var a = mark.getBoundingClientRect(), b = real.getBoundingClientRect();
+      if(a.width > 0 && b.width > 0){
+        intro.style.setProperty('--ws', (b.width / a.width).toFixed(4));
+        intro.style.setProperty('--wx', ((b.left + b.right - a.left - a.right)/2).toFixed(1)+'px');
+        intro.style.setProperty('--wy', ((b.top + b.bottom - a.top - a.bottom)/2).toFixed(1)+'px');
+      }
+    }catch(e){}
+    intro.classList.add('is-walk');
+  }
+
+  function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
+
+  function finish(){
+    if(finished) return; finished = true;
+    cancelAnimationFrame(raf);
+    for(var i=0;i<timers.length;i++) clearTimeout(timers[i]);
+    root.classList.add('intro-revealing','intro-done');
+    intro.classList.add('is-gone');
+    setTimeout(function(){ if(intro.parentNode) intro.parentNode.removeChild(intro); }, 240);
+  }
+
+  if(full){ lead.textContent=''; tail.textContent=''; raf = requestAnimationFrame(type); }
+  else    { lead.textContent = LEAD; tail.textContent = TAIL; intro.classList.add('is-done'); }
+
+  at(T.cap,    function(){ intro.classList.add('is-cap'); });
+  at(T.capOut, function(){ intro.classList.add('is-capout'); });
+  at(T.walk,   function(){ if(document.fonts && document.fonts.ready) document.fonts.ready.then(walk, walk); else walk(); });
+  at(T.reveal, function(){ root.classList.add('intro-revealing'); });
+  at(T.land,   function(){ root.classList.add('intro-done'); });
+  at(T.off,    finish);
+
+  /* any attempt to use the page cuts the sequence short rather than making
+     someone sit through it */
+  ['pointerdown','keydown','wheel','touchstart'].forEach(function(ev){
+    window.addEventListener(ev, finish, {passive:true, once:true});
+  });
+})();
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var rises = document.querySelectorAll('.rise');
