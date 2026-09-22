@@ -9,7 +9,7 @@ REM
 REM  Nothing reaches the internet until step 3, and step 3 asks first.
 REM ---------------------------------------------------------------
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 echo.
 echo   ================================================

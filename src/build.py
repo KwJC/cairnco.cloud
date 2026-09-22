@@ -117,18 +117,18 @@ FAQ = [
      'found in search and in AI assistants. One team for the whole stack, rather '
      'than a web agency, an IT guy and a marketing freelancer who never speak to '
      'each other.'),
-    ('Do you charge a monthly fee, or is it one payment?',
+    ('Does CairnCo charge a monthly fee, or is it one payment?',
      'Both, depending on what we build. A one-off site can be a single project fee. '
      'A system that keeps running, or search work that needs maintaining, is a build '
      'fee plus a monthly amount. We tell you which shape applies before you commit, '
      'and we do not take a percentage of your sales.'),
-    ('Do you only build websites?',
+    ('Does CairnCo only build websites?',
      'No. Websites are the most visible part, but most of the work is the '
      'unglamorous kind: the spreadsheet that four people edit at once, the order '
      'form somebody retypes into another system, the report that takes a morning to '
      'assemble. If it is repetitive and done by hand, it is probably something we '
      'can automate.'),
-    ('Who owns what you build?',
+    ('Who owns what CairnCo builds?',
      'Your content, your data and your customer information are yours and leave '
      'with you if we part ways. For custom work built for you, ownership is set in '
      'writing in the engagement, so nobody has to guess later. If you use one of our '
@@ -140,7 +140,7 @@ FAQ = [
      'Increasingly people ask ChatGPT or Google\u2019s AI summary instead of scrolling '
      'results, and those answers cite a handful of sources. AEO is the work of being '
      'one of them.'),
-    ('Can you take over a website or system somebody else built?',
+    ('Can CairnCo take over a website or system somebody else built?',
      'Usually yes. We will look at what exists before quoting, because inheriting '
      'someone else\u2019s code is sometimes cheaper to rebuild than to repair, and you '
      'deserve to know which before you pay. We will tell you honestly which one it '
@@ -150,12 +150,12 @@ FAQ = [
      'left alone stops working within a year: search rankings drift, dependencies '
      'break, and the thing nobody owns becomes the thing nobody fixes. We stay on '
      'for the running, and the engagement says what that covers before you sign it.'),
-    ('Where are you based, and do you work with businesses outside Singapore?',
+    ('Where is CairnCo based, and does it work with businesses outside Singapore?',
      'We are based in Singapore and most of our work is with Singapore businesses, '
      'which matters for things like PayNow, PDPA and local search. We work remotely '
      'and can take on work elsewhere, but we will be straight about it when local '
      'knowledge is part of what you are buying.'),
-    ('How quickly do you reply?',
+    ('How quickly does CairnCo reply?',
      'Within one working day, to hello@cairnco.cloud or the form on the contact '
      'page. Both partners see it.'),
 ]
@@ -183,7 +183,7 @@ PAGE_META = {
         # no entry at all, so the whole page is scoped to one language.
         langs=('en',),
         en=dict(
-            title='FAQ | CairnCo',
+            title='FAQ | Working with CairnCo in Singapore',
             desc=('Answers about working with CairnCo: discovery calls, how we bill, '
                   'who owns what we build, AEO versus SEO, and what happens after '
                   'launch.'))),
@@ -799,10 +799,28 @@ if _missing:
     print('  drop the official SVGs into src/icons/ and rebuild')
 
 sub = read('sub.template.html')
+_faq_tpl = read('faq.template.html')
+
+# The questions are written twice: once as visible text in faq.template.html,
+# and once in FAQ above, which is what the FAQPage schema is built from. If the
+# two ever drift, the page says one thing and the structured data says another,
+# which is worse than having no schema at all. Fail the build instead.
+_tpl_qs = re.findall(r'<span class="qa__text">(.*?)</span>', _faq_tpl, re.S)
+_list_qs = [q for q, _ in FAQ]
+if _tpl_qs != _list_qs:
+    print('FAQ questions do not match between the page and the schema:')
+    for i in range(max(len(_tpl_qs), len(_list_qs))):
+        a = _tpl_qs[i] if i < len(_tpl_qs) else '(missing)'
+        b = _list_qs[i] if i < len(_list_qs) else '(missing)'
+        if a != b:
+            print('  %2d  page:   %s' % (i + 1, a))
+            print('      schema: %s' % b)
+    sys.exit('fix faq.template.html or the FAQ list in build.py, then rebuild')
+
 pages = [
     ('index.html', home, {}),
     ('contact.html', read('contact.template.html'), {}),
-    ('faq.html', read('faq.template.html'), {}),
+    ('faq.html', _faq_tpl, {}),
 ]
 for filename, slug, name in HOLDING_PAGES:
     pages.append((filename, sub, {'__PAGE_NAME__': name}))

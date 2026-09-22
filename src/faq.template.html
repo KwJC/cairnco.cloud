@@ -13,6 +13,7 @@ __SHELL_CSS__
   background:linear-gradient(90deg,transparent,rgba(61,90,80,.26) 12%,rgba(61,90,80,.26) 88%,transparent)}
 .sec--first::before{display:none}
 .sec__head{max-width:34ch}
+.sec__head h1{font-size:clamp(2.3rem,5vw,3.4rem);letter-spacing:-.03em}
 .sec__sub{margin-top:var(--s2);font-size:1.06rem;color:var(--muted);max-width:54ch;line-height:1.5}
 .faq{overflow:hidden;isolation:isolate}
 
@@ -74,21 +75,20 @@ __NAV_HTML__
   <div class="topo topo--open" aria-hidden="true">__TOPO_OPEN__</div>
   <div class="wrap">
     <div class="sec__head">
-      <h1>What people ask before they hire us.</h1>
-      <p class="sec__sub">Straight answers. If yours is not here, <a href="contact.html">ask us
-        directly</a> and we will reply within one working day.</p>
+      <h1>FAQ</h1>
+      <p class="sec__sub">What people ask before they hire us.</p>
     </div>
 
     <div class="faq__grid" id="faqGrid">
       <div class="faq__col">
-        <div class="qa is-open" data-qa>
+        <div class="qa" data-qa>
           <h3 class="qa__q">
-            <button class="qa__btn" type="button" id="qq0" aria-expanded="true" aria-controls="qa0">
+            <button class="qa__btn" type="button" id="qq0" aria-expanded="false" aria-controls="qa0">
               <span class="qa__text">What happens on a discovery call?</span>
               <span class="qa__sign" aria-hidden="true"></span>
             </button>
           </h3>
-          <div class="qa__a" id="qa0" role="region" aria-labelledby="qq0">
+          <div class="qa__a" id="qa0" role="region" aria-labelledby="qq0" hidden>
             <p>Thirty minutes, no obligation, and no pitch. You describe what is slow, breaking or done by hand, and we ask questions until we understand it. You leave with a written picture of what is actually wrong, whether or not you hire us. If it is not something we should build, we will say so.</p>
           </div>
         </div>
@@ -106,7 +106,7 @@ __NAV_HTML__
         <div class="qa" data-qa>
           <h3 class="qa__q">
             <button class="qa__btn" type="button" id="qq2" aria-expanded="false" aria-controls="qa2">
-              <span class="qa__text">Do you charge a monthly fee, or is it one payment?</span>
+              <span class="qa__text">Does CairnCo charge a monthly fee, or is it one payment?</span>
               <span class="qa__sign" aria-hidden="true"></span>
             </button>
           </h3>
@@ -117,7 +117,7 @@ __NAV_HTML__
         <div class="qa" data-qa>
           <h3 class="qa__q">
             <button class="qa__btn" type="button" id="qq3" aria-expanded="false" aria-controls="qa3">
-              <span class="qa__text">Do you only build websites?</span>
+              <span class="qa__text">Does CairnCo only build websites?</span>
               <span class="qa__sign" aria-hidden="true"></span>
             </button>
           </h3>
@@ -128,7 +128,7 @@ __NAV_HTML__
         <div class="qa" data-qa>
           <h3 class="qa__q">
             <button class="qa__btn" type="button" id="qq4" aria-expanded="false" aria-controls="qa4">
-              <span class="qa__text">Who owns what you build?</span>
+              <span class="qa__text">Who owns what CairnCo builds?</span>
               <span class="qa__sign" aria-hidden="true"></span>
             </button>
           </h3>
@@ -152,7 +152,7 @@ __NAV_HTML__
         <div class="qa" data-qa>
           <h3 class="qa__q">
             <button class="qa__btn" type="button" id="qq6" aria-expanded="false" aria-controls="qa6">
-              <span class="qa__text">Can you take over a website or system somebody else built?</span>
+              <span class="qa__text">Can CairnCo take over a website or system somebody else built?</span>
               <span class="qa__sign" aria-hidden="true"></span>
             </button>
           </h3>
@@ -174,7 +174,7 @@ __NAV_HTML__
         <div class="qa" data-qa>
           <h3 class="qa__q">
             <button class="qa__btn" type="button" id="qq8" aria-expanded="false" aria-controls="qa8">
-              <span class="qa__text">Where are you based, and do you work with businesses outside Singapore?</span>
+              <span class="qa__text">Where is CairnCo based, and does it work with businesses outside Singapore?</span>
               <span class="qa__sign" aria-hidden="true"></span>
             </button>
           </h3>
@@ -185,7 +185,7 @@ __NAV_HTML__
         <div class="qa" data-qa>
           <h3 class="qa__q">
             <button class="qa__btn" type="button" id="qq9" aria-expanded="false" aria-controls="qa9">
-              <span class="qa__text">How quickly do you reply?</span>
+              <span class="qa__text">How quickly does CairnCo reply?</span>
               <span class="qa__sign" aria-hidden="true"></span>
             </button>
           </h3>
@@ -251,8 +251,9 @@ __NAV_JS__
     });
   });
 
-  /* Without JS every answer is visible, which is the accessible default. The
-     script is what collapses them, so it closes all but the first on load. */
+  /* The page opens with every answer closed, so nothing is preselected for
+     the reader. The answers stay in the markup either way, so a crawler and
+     a reader with JS off still get every word. */
   items.forEach(function(el, i){ if(order.indexOf(i) === -1) paint(i, false); });
 })();
 </script>

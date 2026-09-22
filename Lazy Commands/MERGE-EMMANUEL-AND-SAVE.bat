@@ -15,11 +15,11 @@ REM    Step 4  SAVE     commits your work
 REM    Step 5  JOIN     records Emmanuel's commit as merged
 REM    Step 6  SEND     pushes everything to GitHub
 REM
-REM  DO NOT run PULL-LATEST.bat instead. It would throw away the
-REM  FAQ wiring in src\build.py.
+REM  PULL-LATEST.bat will not do this job: it brings work DOWN
+REM  from GitHub, and today the problem is getting yours UP.
 REM ---------------------------------------------------------------
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 echo.
 echo   ================================================

@@ -13,7 +13,7 @@ REM  This does NOT touch the live website. Publishing is a separate
 REM  button: BUILD-AND-DEPLOY.bat
 REM ---------------------------------------------------------------
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 echo.
 echo   ================================================
@@ -95,9 +95,11 @@ echo   (Emmanuel) saved something first.
 echo.
 echo   To fix it:
 echo.
-echo       1. Run PULL-LATEST.bat
+echo       1. Run PULL-LATEST.bat to bring their work down
 echo       2. Run this button again
 echo.
+echo   If PULL-LATEST stops and says the histories have
+echo   split, do not force anything. Tell Claude.
 pause
 exit /b 1
 
