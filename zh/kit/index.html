@@ -62,7 +62,7 @@
 }
 
 *{box-sizing:border-box}
-html{scrollbar-width:thin;scrollbar-color:rgba(61,90,80,.42) transparent}
+html{scrollbar-width:thin;scrollbar-color:rgba(61,90,80,.42) transparent;scroll-behavior:smooth}
 ::-webkit-scrollbar{width:14px;height:14px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(61,90,80,.42);border-radius:999px;border:4px solid transparent;background-clip:content-box}
@@ -111,12 +111,12 @@ a{color:inherit}
 .mark:hover{color:var(--rust)}
 .mark:hover span{color:var(--teal)}
 .nav__links{display:flex;gap:var(--s2);margin-left:auto;align-items:center;flex-wrap:wrap}
-.nav__links a{font-size:.94rem;text-decoration:none;color:var(--muted);
+.nav__links a{display:inline-flex;align-items:center;min-height:44px;font-size:.94rem;text-decoration:none;color:var(--muted);
   transition:color .18s var(--ease),background .18s var(--ease)}
 .nav__links a:not(.btn){padding:.46em .85em;border-radius:999px;line-height:1.2}
 .nav__links a:not(.btn):hover,.nav__links a:not(.btn):focus-visible{
   color:var(--paper-raised);background:var(--rust)}
-.nav__links a.btn{color:var(--paper-raised)}
+.nav__links a.btn{justify-content:center;min-height:44px;color:var(--paper-raised);line-height:1.2}
 .nav__links a.btn:hover{color:var(--paper-raised)}
 
 .btn{
@@ -176,6 +176,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .nav.is-open .nav__bars::before{transform:translateY(6px) rotate(45deg)}
 .nav.is-open .nav__bars i{opacity:0}
 .nav.is-open .nav__bars::after{transform:translateY(-6px) rotate(-45deg)}
+.nav__scrim{display:none}
 
 /* Below 700px the four links wrapped under the wordmark and the header grew to
    ~200px, a quarter of a phone screen, while .page only reserved --navh. They
@@ -188,16 +189,26 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   .mark{font-size:1.5rem}
   .nav__links{position:absolute;left:0;right:0;top:100%;margin-left:0;
     flex-direction:column;align-items:stretch;gap:4px;flex-wrap:nowrap;
-    background:var(--paper-raised);border-bottom:1px solid rgba(61,90,80,.26);
+    background:var(--paper);border-bottom:1px solid rgba(61,90,80,.26);
     box-shadow:0 20px 36px rgba(31,42,38,.16);
-    padding:10px 20px var(--s3);
-    transform-origin:top;opacity:0;transform:translateY(-8px);pointer-events:none;
-    transition:opacity .22s var(--ease),transform .26s var(--ease)}
-  .nav.is-open .nav__links{opacity:1;transform:none;pointer-events:auto}
+    padding:10px 20px var(--s3);max-height:0;overflow:hidden;visibility:hidden;
+    transform-origin:top;opacity:0;transform:translateY(-8px) scaleY(.98);
+    pointer-events:none;overscroll-behavior:contain;
+    transition:opacity .22s var(--ease),transform .26s var(--ease),
+      max-height .26s var(--ease),visibility 0s linear .26s}
+  .nav.is-open .nav__links{opacity:1;transform:none;max-height:calc(100svh - var(--navh));
+    visibility:visible;pointer-events:auto;overflow-y:auto;
+    transition-delay:0s}
+  .nav__scrim{display:block;position:fixed;inset:var(--navh) 0 0;z-index:50;
+    background:rgba(31,42,38,.16);opacity:0;pointer-events:none;
+    transition:opacity .26s var(--ease)}
+  .nav.is-open + .nav__scrim{opacity:1;pointer-events:auto}
+  .nav__links a:not(.btn),.nav__links a.btn{min-height:48px;display:flex;align-items:center}
   .nav__links a:not(.btn){padding:.85em .65em;border-radius:8px;font-size:1.06rem;
     color:var(--ink);border-bottom:1px solid rgba(61,90,80,.12)}
   .nav__links a:not(.btn):last-of-type{border-bottom:0}
-  .nav__links a.btn{margin-top:10px;text-align:center;padding:.95em 1.35em;font-size:1.02rem}
+  .nav__links a.btn{margin-top:8px;text-align:center;padding:.72em 1.35em;font-size:1.02rem;
+    background:var(--teal);border-color:var(--teal)}
 }
 
 /* ---------- footer ---------- */
@@ -252,6 +263,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     <a class="btn" href="/zh/contact/">联系我们</a>
   </nav>
 </div></header>
+<div class="nav__scrim" id="navScrim" aria-hidden="true"></div>
 
 <main>
   <section class="soon has-topo">
@@ -320,7 +332,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   function upd(){
     var y=window.scrollY;
     nav.classList.toggle('is-stuck', y>10);
-    if(y>last && y>160){ nav.classList.add('is-hidden'); solid=true; }
+    if(menuOpen){ reveal(); }
+    else if(y>last && y>160){ nav.classList.add('is-hidden'); solid=true; }
     else if(y<last-4){ reveal(); }
     surface(y);
     last=y; ticking=false;
@@ -347,11 +360,13 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   /* the phone menu. the panel is a plain dropdown, so it closes on a link, on
      Escape, on a tap outside, and whenever the layout grows back past the
      breakpoint. */
-  var tog=document.getElementById('navToggle'), panel=document.getElementById('navLinks');
+  var tog=document.getElementById('navToggle'), panel=document.getElementById('navLinks'),
+      scrim=document.getElementById('navScrim');
   if(tog&&panel){
     function setOpen(on){
       nav.classList.toggle('is-open',on);
       tog.setAttribute('aria-expanded',on?'true':'false');
+      if(scrim) scrim.setAttribute('aria-hidden',on?'false':'true');
       if(on) reveal();
       /* the panel must never open over bare terrain */
       menuOpen=on; surface(window.scrollY);
@@ -363,6 +378,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     panel.addEventListener('click',function(e){
       if(e.target.closest('a')) setOpen(false);
     });
+    if(scrim) scrim.addEventListener('click',function(){ setOpen(false); });
     /* pointerdown, not click: a tap does not reliably synthesise a click on
        an element with no handler of its own, so an outside tap was leaving the
        menu open on a phone. */
@@ -376,6 +392,21 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
       if(window.innerWidth>700 && nav.classList.contains('is-open')) setOpen(false);
     },{passive:true});
   }
+
+  /* Same-page calls ease into their target and leave it below the fixed
+     header. Native anchor scrolling remains untouched everywhere else. */
+  document.addEventListener('click',function(e){
+    var link=e.target.closest('a[href^="#"]');
+    if(!link) return;
+    var id=link.getAttribute('href').slice(1), target=document.getElementById(id);
+    if(!id||!target) return;
+    e.preventDefault();
+    target.scrollIntoView({
+      behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+      block:'start'
+    });
+    if(window.history&&window.history.pushState) window.history.pushState(null,'','#'+id);
+  });
 })();
 </script>
 </body>

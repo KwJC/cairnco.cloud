@@ -30,7 +30,8 @@
   function upd(){
     var y=window.scrollY;
     nav.classList.toggle('is-stuck', y>10);
-    if(y>last && y>160){ nav.classList.add('is-hidden'); solid=true; }
+    if(menuOpen){ reveal(); }
+    else if(y>last && y>160){ nav.classList.add('is-hidden'); solid=true; }
     else if(y<last-4){ reveal(); }
     surface(y);
     last=y; ticking=false;
@@ -57,11 +58,13 @@
   /* the phone menu. the panel is a plain dropdown, so it closes on a link, on
      Escape, on a tap outside, and whenever the layout grows back past the
      breakpoint. */
-  var tog=document.getElementById('navToggle'), panel=document.getElementById('navLinks');
+  var tog=document.getElementById('navToggle'), panel=document.getElementById('navLinks'),
+      scrim=document.getElementById('navScrim');
   if(tog&&panel){
     function setOpen(on){
       nav.classList.toggle('is-open',on);
       tog.setAttribute('aria-expanded',on?'true':'false');
+      if(scrim) scrim.setAttribute('aria-hidden',on?'false':'true');
       if(on) reveal();
       /* the panel must never open over bare terrain */
       menuOpen=on; surface(window.scrollY);
@@ -73,6 +76,7 @@
     panel.addEventListener('click',function(e){
       if(e.target.closest('a')) setOpen(false);
     });
+    if(scrim) scrim.addEventListener('click',function(){ setOpen(false); });
     /* pointerdown, not click: a tap does not reliably synthesise a click on
        an element with no handler of its own, so an outside tap was leaving the
        menu open on a phone. */
@@ -86,4 +90,19 @@
       if(window.innerWidth>700 && nav.classList.contains('is-open')) setOpen(false);
     },{passive:true});
   }
+
+  /* Same-page calls ease into their target and leave it below the fixed
+     header. Native anchor scrolling remains untouched everywhere else. */
+  document.addEventListener('click',function(e){
+    var link=e.target.closest('a[href^="#"]');
+    if(!link) return;
+    var id=link.getAttribute('href').slice(1), target=document.getElementById(id);
+    if(!id||!target) return;
+    e.preventDefault();
+    target.scrollIntoView({
+      behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+      block:'start'
+    });
+    if(window.history&&window.history.pushState) window.history.pushState(null,'','#'+id);
+  });
 })();
