@@ -7,6 +7,26 @@ __META__
 <style>
 __SHELL_CSS__
 
+/* ---------- before you write ----------
+   Three questions between the page head and the two contact columns, where
+   hesitation actually happens. Deliberately DIFFERENT questions from the ones
+   on the FAQ page, so the two never repeat each other to a search engine.
+   These styles ship on every language; the cards themselves are English-only
+   until the three answers are translated, and then they are already styled. */
+.pre{position:relative;z-index:2;margin-top:var(--s4)}
+.pre__label{font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--teal)}
+.pre__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--s3);margin-top:var(--s3)}
+.pre__card{background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);
+  border-radius:10px;padding:var(--s3)}
+.pre__card h3{font-size:1rem;letter-spacing:-.012em;line-height:1.32}
+.pre__card p{margin-top:.5rem;font-size:.9rem;line-height:1.56;color:var(--body)}
+.pre__more{margin-top:var(--s3);font-size:.9rem;color:var(--muted)}
+@media (max-width:860px){
+  .pre__grid{grid-template-columns:1fr;gap:var(--s2)}
+}
+
 /* ---------- shared section furniture ---------- */
 .sec{position:relative;padding-block:var(--s5)}
 .sec::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
@@ -178,6 +198,39 @@ __NAV_HTML__
       <p class="sec__sub">Either route reaches both of us. Expect a reply within one working day.</p>
     </div>
 
+    <!--EN-ONLY-->
+    <!-- English only until the three answers are translated: the link
+         below points at /faq/, which is an English-only page, and
+         untranslated cards on /zh/contact/ would be worse than none. -->
+    <section class="pre" aria-labelledby="preHead">
+      <p class="pre__label" id="preHead">Before you write</p>
+      <div class="pre__grid">
+        <article class="pre__card">
+          <h3>Do I need to know what I want before I contact you?</h3>
+          <p>No. Most people arrive with a symptom rather than a specification:
+            something takes too long, or breaks, or gets retyped. Describing the
+            symptom is enough. The first call is for working out what the actual
+            problem is.</p>
+        </article>
+        <article class="pre__card">
+          <h3>Is the first call really free?</h3>
+          <p>Yes, and there is nothing to unsubscribe from afterwards. Thirty
+            minutes, no obligation, and you keep the written summary either way.
+            If we are not the right people for it, we will tell you who might
+            be.</p>
+        </article>
+        <article class="pre__card">
+          <h3>What should I have ready?</h3>
+          <p>Nothing prepared. It helps if you can show us the thing that is
+            broken during the call, a screen, a spreadsheet, the current site,
+            but it is not required. Come with the problem and we will do the
+            digging.</p>
+        </article>
+      </div>
+      <p class="pre__more">More questions? <a href="faq.html">Read the full FAQ</a>.</p>
+    </section>
+    <!--/EN-ONLY-->
+
     <div class="contact__grid">
 
       <div class="reach pad">
@@ -208,8 +261,8 @@ __NAV_HTML__
             <div class="social">
             <a class="ico" href="#" aria-label="CairnCo on LinkedIn">__ICON_LINKEDIN__</a>
             <a class="ico" href="#" aria-label="CairnCo on GitHub">__ICON_GITHUB__</a>
-            <a class="ico" href="#" aria-label="CairnCo on Instagram">__ICON_INSTAGRAM__</a>
-            <a class="ico" href="#" aria-label="CairnCo on TikTok">__ICON_TIKTOK__</a>
+            <a class="ico" href="https://www.instagram.com/cairnco.holdings" target="_blank" rel="me noopener" aria-label="CairnCo on Instagram">__ICON_INSTAGRAM__</a>
+            <a class="ico" href="https://www.tiktok.com/@cairnco_holdings" target="_blank" rel="me noopener" aria-label="CairnCo on TikTok">__ICON_TIKTOK__</a>
             </div>
           </article>
         </div>

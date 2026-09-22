@@ -65,7 +65,7 @@
 }
 
 *{box-sizing:border-box}
-html{scrollbar-width:thin;scrollbar-color:rgba(61,90,80,.42) transparent}
+html{scrollbar-width:thin;scrollbar-color:rgba(61,90,80,.42) transparent;scroll-behavior:smooth}
 ::-webkit-scrollbar{width:14px;height:14px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(61,90,80,.42);border-radius:999px;border:4px solid transparent;background-clip:content-box}
@@ -114,12 +114,12 @@ a{color:inherit}
 .mark:hover{color:var(--rust)}
 .mark:hover span{color:var(--teal)}
 .nav__links{display:flex;gap:var(--s2);margin-left:auto;align-items:center;flex-wrap:wrap}
-.nav__links a{font-size:.94rem;text-decoration:none;color:var(--muted);
+.nav__links a{display:inline-flex;align-items:center;min-height:44px;font-size:.94rem;text-decoration:none;color:var(--muted);
   transition:color .18s var(--ease),background .18s var(--ease)}
 .nav__links a:not(.btn){padding:.46em .85em;border-radius:999px;line-height:1.2}
 .nav__links a:not(.btn):hover,.nav__links a:not(.btn):focus-visible{
   color:var(--paper-raised);background:var(--rust)}
-.nav__links a.btn{color:var(--paper-raised)}
+.nav__links a.btn{justify-content:center;min-height:44px;color:var(--paper-raised);line-height:1.2}
 .nav__links a.btn:hover{color:var(--paper-raised)}
 
 .btn{
@@ -179,6 +179,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .nav.is-open .nav__bars::before{transform:translateY(6px) rotate(45deg)}
 .nav.is-open .nav__bars i{opacity:0}
 .nav.is-open .nav__bars::after{transform:translateY(-6px) rotate(-45deg)}
+.nav__scrim{display:none}
 
 /* Below 700px the four links wrapped under the wordmark and the header grew to
    ~200px, a quarter of a phone screen, while .page only reserved --navh. They
@@ -191,16 +192,26 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   .mark{font-size:1.5rem}
   .nav__links{position:absolute;left:0;right:0;top:100%;margin-left:0;
     flex-direction:column;align-items:stretch;gap:4px;flex-wrap:nowrap;
-    background:var(--paper-raised);border-bottom:1px solid rgba(61,90,80,.26);
+    background:var(--paper);border-bottom:1px solid rgba(61,90,80,.26);
     box-shadow:0 20px 36px rgba(31,42,38,.16);
-    padding:10px 20px var(--s3);
-    transform-origin:top;opacity:0;transform:translateY(-8px);pointer-events:none;
-    transition:opacity .22s var(--ease),transform .26s var(--ease)}
-  .nav.is-open .nav__links{opacity:1;transform:none;pointer-events:auto}
+    padding:10px 20px var(--s3);max-height:0;overflow:hidden;visibility:hidden;
+    transform-origin:top;opacity:0;transform:translateY(-8px) scaleY(.98);
+    pointer-events:none;overscroll-behavior:contain;
+    transition:opacity .22s var(--ease),transform .26s var(--ease),
+      max-height .26s var(--ease),visibility 0s linear .26s}
+  .nav.is-open .nav__links{opacity:1;transform:none;max-height:calc(100svh - var(--navh));
+    visibility:visible;pointer-events:auto;overflow-y:auto;
+    transition-delay:0s}
+  .nav__scrim{display:block;position:fixed;inset:var(--navh) 0 0;z-index:50;
+    background:rgba(31,42,38,.16);opacity:0;pointer-events:none;
+    transition:opacity .26s var(--ease)}
+  .nav.is-open + .nav__scrim{opacity:1;pointer-events:auto}
+  .nav__links a:not(.btn),.nav__links a.btn{min-height:48px;display:flex;align-items:center}
   .nav__links a:not(.btn){padding:.85em .65em;border-radius:8px;font-size:1.06rem;
     color:var(--ink);border-bottom:1px solid rgba(61,90,80,.12)}
   .nav__links a:not(.btn):last-of-type{border-bottom:0}
-  .nav__links a.btn{margin-top:10px;text-align:center;padding:.95em 1.35em;font-size:1.02rem}
+  .nav__links a.btn{margin-top:8px;text-align:center;padding:.72em 1.35em;font-size:1.02rem;
+    background:var(--teal);border-color:var(--teal)}
 }
 /*==SHELL-A:END==*/
 
@@ -226,11 +237,19 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .page--home .nav::before{content:"";position:absolute;inset:0;z-index:0;
   background:var(--paper);border-bottom:1px solid rgba(61,90,80,.20);
   opacity:var(--nav-surface,0);will-change:opacity;pointer-events:none}
-/* the shadow belongs to the surface, so it fades with it */
 .page--home .nav.is-stuck{box-shadow:none}
 .page--home .nav.is-stuck::before{box-shadow:0 10px 26px rgba(31,42,38,.07)}
 /* the bar's own content has to sit above its surface */
 .page--home .nav__in{position:relative;z-index:1}
+
+/* A proximity snap keeps the long-form page from stopping between landmarks,
+   while still yielding immediately to a deliberate, fast scroll. */
+@media (max-width:700px){
+  html{scroll-snap-type:y proximity}
+  .page--home .hero,.page--home #problem,.page--home #work,
+  .page--home #process,.page--home #start{scroll-snap-align:start;
+    scroll-margin-top:var(--navh)}
+}
 
 /* ---------- hero ---------- */
 .hero{padding-block:var(--s3) var(--s2);position:relative;overflow:hidden;isolation:isolate}
@@ -325,6 +344,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   background:radial-gradient(ellipse 78% 62% at 50% 50%,
     rgba(237,230,216,.93) 0%,rgba(237,230,216,.42) 58%,rgba(237,230,216,0) 100%);
   transition:opacity 1.05s var(--ease)}
+@media (max-width:700px){
+  .intro__wash{background:var(--paper)}
+}
 .intro__mark{position:relative;margin:0;font-family:var(--display);font-weight:600;
   font-size:clamp(2.4rem,5.6vw,4.2rem);letter-spacing:-.02em;color:var(--ink);
   white-space:nowrap;transform-origin:50% 50%;
@@ -466,7 +488,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   margin-bottom:calc(var(--wheel-gap) + var(--wheel-spill-t));
   position:relative;z-index:2}
 .stage{position:relative;height:262px;perspective:1150px;perspective-origin:50% 44%}
-.rev{position:absolute;left:0;right:0;top:50%;margin-top:-114px;
+.rev{position:absolute;left:0;right:0;top:50%;margin-top:-104px;
   background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);border-radius:15px;
   padding:26px 28px;box-shadow:0 16px 36px rgba(31,42,38,.11);
   transform-origin:50% 50%;will-change:transform,opacity;backface-visibility:hidden;
@@ -479,7 +501,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .rev__name{height:13px;width:130px;border-radius:3px;
   background:linear-gradient(90deg,#C7C1B2,#DAD4C6);filter:blur(2.8px)}
 .rev__when{margin-top:6px;font-size:.84rem;color:var(--muted)}
-.rev__stars{margin-top:15px;font-size:1.18rem;letter-spacing:3px;color:var(--rust);line-height:1}
 .rev__body{margin-top:11px;font-size:1.16rem;color:var(--ink);line-height:1.45}
 .rev__biz{margin-top:15px;padding-top:12px;border-top:1px solid rgba(61,90,80,.14);
   font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;color:var(--muted);
@@ -512,7 +533,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   .rev__row{gap:10px}
   .rev__name{height:11px;width:104px}
   .rev__when{margin-top:4px;font-size:.8rem}
-  .rev__stars{margin-top:10px;font-size:1rem}
   .rev__body{margin-top:7px;font-size:clamp(.92rem,1.85vh,1rem);line-height:1.32}
   .rev__biz{margin-top:10px;padding-top:8px;font-size:.68rem}
   .reviews__count{margin-top:12px;font-size:.76rem}
@@ -583,15 +603,16 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   .who__door{display:none}
   .sectors{display:flex;flex-wrap:nowrap;gap:12px;
     overflow-x:auto;overflow-y:visible;
-    -webkit-overflow-scrolling:touch;scroll-snap-type:none;
+    -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
+    scroll-behavior:smooth;
     padding-inline:20px;margin-inline:-20px;
     padding-block:4px 12px}
   .sectors::-webkit-scrollbar{height:0;display:none}
   .sectors{scrollbar-width:none}
-  .sector{flex:0 0 76%;min-width:0}
+  .sector{flex:0 0 76%;min-width:0;scroll-snap-align:start}
   .sector--door{flex:0 0 76%;grid-column:auto;display:flex;flex-direction:column;
     align-items:flex-start;justify-content:center;gap:var(--s3);
-    background:transparent;overflow:hidden}
+    background:transparent;overflow:hidden;scroll-snap-align:start}
   .sector--door .btn{width:100%;text-align:center}
 }
 @media (max-width:420px){
@@ -773,6 +794,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 }
 
 @media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;scroll-snap-type:none}
   *{animation:none !important;transition:none !important}
   .rise{transform:none}
 }
@@ -837,10 +859,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     <a href="/zh/landmarks/">作品地标</a>
     <a href="/zh/kit/">工具箱</a>
     <a href="/zh/newsroom/">新闻室</a>
+    
     <a href="/" hreflang="en-SG" lang="en-SG">English</a>
     <a class="btn" href="/zh/contact/">联系我们</a>
   </nav>
 </div></header>
+<div class="nav__scrim" id="navScrim" aria-hidden="true"></div>
 <!--==NAV:END==-->
 
 <main>
@@ -907,7 +931,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">3 周前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">联系表单试了三次，一直没有回复。还以为他们已经停业了。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -916,7 +939,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">1 个月前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">网站看起来像 2017 年之后就没人维护。不确定他们是否还在营业。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -925,7 +947,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">2 个月前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">一个预约收到了三封邮件，来自三个不同系统。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -934,7 +955,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">2 个月前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">他们系统里还是我的旧地址。货送到了我两年前搬离的公寓。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -943,7 +963,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">4 个月前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">等报价等了四天。对方说还得有人手动计算。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -952,7 +971,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">5 个月前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">网站一半页面还写着即将上线，已经这样一年了。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -961,7 +979,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">6 个月前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">预约页面整周都打不开。看起来没人能修好。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -970,7 +987,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
                 <div class="rev__avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.4" r="6.4"/><path d="M6.6 36.4a13.4 13.4 0 0 1 26.8 0Z"/></svg></div>
                 <div><div class="rev__name"></div><div class="rev__when">7 个月前</div></div>
               </div>
-              <div class="rev__stars" aria-label="五星中的一星">★☆☆☆☆</div>
               <p class="rev__body">最后只能直接打电话给老板。他道歉说会自己处理。</p>
               <p class="rev__biz">评价对象：类似你的企业</p>
             </article>
@@ -1563,7 +1579,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   function upd(){
     var y=window.scrollY;
     nav.classList.toggle('is-stuck', y>10);
-    if(y>last && y>160){ nav.classList.add('is-hidden'); solid=true; }
+    if(menuOpen){ reveal(); }
+    else if(y>last && y>160){ nav.classList.add('is-hidden'); solid=true; }
     else if(y<last-4){ reveal(); }
     surface(y);
     last=y; ticking=false;
@@ -1590,11 +1607,13 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   /* the phone menu. the panel is a plain dropdown, so it closes on a link, on
      Escape, on a tap outside, and whenever the layout grows back past the
      breakpoint. */
-  var tog=document.getElementById('navToggle'), panel=document.getElementById('navLinks');
+  var tog=document.getElementById('navToggle'), panel=document.getElementById('navLinks'),
+      scrim=document.getElementById('navScrim');
   if(tog&&panel){
     function setOpen(on){
       nav.classList.toggle('is-open',on);
       tog.setAttribute('aria-expanded',on?'true':'false');
+      if(scrim) scrim.setAttribute('aria-hidden',on?'false':'true');
       if(on) reveal();
       /* the panel must never open over bare terrain */
       menuOpen=on; surface(window.scrollY);
@@ -1606,6 +1625,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     panel.addEventListener('click',function(e){
       if(e.target.closest('a')) setOpen(false);
     });
+    if(scrim) scrim.addEventListener('click',function(){ setOpen(false); });
     /* pointerdown, not click: a tap does not reliably synthesise a click on
        an element with no handler of its own, so an outside tap was leaving the
        menu open on a phone. */
@@ -1619,6 +1639,21 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
       if(window.innerWidth>700 && nav.classList.contains('is-open')) setOpen(false);
     },{passive:true});
   }
+
+  /* Same-page calls ease into their target and leave it below the fixed
+     header. Native anchor scrolling remains untouched everywhere else. */
+  document.addEventListener('click',function(e){
+    var link=e.target.closest('a[href^="#"]');
+    if(!link) return;
+    var id=link.getAttribute('href').slice(1), target=document.getElementById(id);
+    if(!id||!target) return;
+    e.preventDefault();
+    target.scrollIntoView({
+      behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+      block:'start'
+    });
+    if(window.history&&window.history.pushState) window.history.pushState(null,'','#'+id);
+  });
 })();
 
 /* ---- the route: the path draws itself and the steps light in sequence ---- */

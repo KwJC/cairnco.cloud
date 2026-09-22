@@ -28,6 +28,7 @@ echo.
 set missing=0
 call :check "dist\index.html"
 call :check "dist\contact\index.html"
+call :check "dist\faq\index.html"
 call :check "dist\zh\index.html"
 call :check "dist\en\index.html"
 call :check "dist\googlebac108922c07543e.html"

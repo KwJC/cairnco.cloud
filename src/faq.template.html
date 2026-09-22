@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+__HEAD__
+__META__
+
+<style>
+__SHELL_CSS__
+
+/* ---------- shared section furniture ---------- */
+.sec{position:relative;padding-block:var(--s5)}
+.sec::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(61,90,80,.26) 12%,rgba(61,90,80,.26) 88%,transparent)}
+.sec--first::before{display:none}
+.sec__head{max-width:34ch}
+.sec__sub{margin-top:var(--s2);font-size:1.06rem;color:var(--muted);max-width:54ch;line-height:1.5}
+.faq{overflow:hidden;isolation:isolate}
+
+/* ---------- the two columns ----------
+   Two independent columns rather than one CSS-columns block: an answer opening
+   must push only its own column, and `columns` would reflow the other side. */
+.faq__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0 var(--s5);margin-top:var(--s4);position:relative;z-index:2;align-items:start}
+.faq__col{display:flex;flex-direction:column}
+
+/* ---------- one question ---------- */
+.qa{border-top:1px solid rgba(61,90,80,.18)}
+.qa__q{margin:0;font-size:inherit;font-weight:inherit;line-height:inherit}
+.qa__btn{display:flex;align-items:flex-start;gap:var(--s3);width:100%;
+  background:none;border:0;padding:1.15rem 0;cursor:pointer;text-align:left;
+  font:inherit;color:inherit;min-height:44px}
+.qa__text{flex-grow:1;font-family:var(--display);font-weight:500;font-size:1.12rem;
+  line-height:1.34;letter-spacing:-.016em;color:var(--ink);
+  transition:color .18s var(--ease)}
+.qa__btn:hover .qa__text,.qa__btn:focus-visible .qa__text{color:var(--rust)}
+/* the sign is drawn, not typed, so it never depends on a glyph being present */
+.qa__sign{flex:none;position:relative;width:13px;height:13px;margin-top:.42rem}
+.qa__sign::before,.qa__sign::after{content:"";position:absolute;left:0;top:6px;
+  width:13px;height:1.5px;background:var(--rust);transition:transform .24s var(--ease)}
+.qa__sign::after{transform:rotate(90deg)}
+.qa.is-open .qa__sign::after{transform:rotate(0deg)}
+.qa__a p{margin:0 0 1.35rem;font-size:.985rem;line-height:1.66;color:var(--body);max-width:44ch}
+
+@media (max-width:820px){
+  .faq__grid{grid-template-columns:1fr;gap:0}
+  /* the second column's first row would otherwise double the hairline */
+  .faq__col+.faq__col .qa:first-child{border-top:1px solid rgba(61,90,80,.18)}
+  .qa__a p{max-width:none}
+}
+
+/* ---------- closing ---------- */
+.faq__end{margin-top:var(--s5);padding-top:var(--s4);
+  border-top:1px solid rgba(181,101,29,.5);position:relative;z-index:2;
+  display:flex;align-items:flex-end;gap:var(--s4);flex-wrap:wrap}
+.faq__end h2{font-size:clamp(1.5rem,2.8vw,2rem);max-width:26ch}
+.faq__end p{margin-top:var(--s2);color:var(--muted);max-width:46ch;line-height:1.5}
+.faq__end-text{flex-grow:1;min-width:min(100%,360px)}
+.faq__end-go{display:flex;gap:var(--s2);flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+
+</head>
+
+<body>
+<div class="page">
+__NAV_HTML__
+
+<main>
+
+<section class="sec sec--first faq has-topo">
+  <div class="topo topo--open" aria-hidden="true">__TOPO_OPEN__</div>
+  <div class="wrap">
+    <div class="sec__head">
+      <h1>What people ask before they hire us.</h1>
+      <p class="sec__sub">Straight answers. If yours is not here, <a href="contact.html">ask us
+        directly</a> and we will reply within one working day.</p>
+    </div>
+
+    <div class="faq__grid" id="faqGrid">
+      <div class="faq__col">
+        <div class="qa is-open" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq0" aria-expanded="true" aria-controls="qa0">
+              <span class="qa__text">What happens on a discovery call?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa0" role="region" aria-labelledby="qq0">
+            <p>Thirty minutes, no obligation, and no pitch. You describe what is slow, breaking or done by hand, and we ask questions until we understand it. You leave with a written picture of what is actually wrong, whether or not you hire us. If it is not something we should build, we will say so.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq1" aria-expanded="false" aria-controls="qa1">
+              <span class="qa__text">What does CairnCo actually do?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa1" role="region" aria-labelledby="qq1" hidden>
+            <p>We are the tech department for businesses that do not have one. That covers websites, internal tools, AI workflows, automation, cloud setup, and getting found in search and in AI assistants. One team for the whole stack, rather than a web agency, an IT guy and a marketing freelancer who never speak to each other.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq2" aria-expanded="false" aria-controls="qa2">
+              <span class="qa__text">Do you charge a monthly fee, or is it one payment?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa2" role="region" aria-labelledby="qq2" hidden>
+            <p>Both, depending on what we build. A one-off site can be a single project fee. A system that keeps running, or search work that needs maintaining, is a build fee plus a monthly amount. We tell you which shape applies before you commit, and we do not take a percentage of your sales.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq3" aria-expanded="false" aria-controls="qa3">
+              <span class="qa__text">Do you only build websites?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa3" role="region" aria-labelledby="qq3" hidden>
+            <p>No. Websites are the most visible part, but most of the work is the unglamorous kind: the spreadsheet that four people edit at once, the order form somebody retypes into another system, the report that takes a morning to assemble. If it is repetitive and done by hand, it is probably something we can automate.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq4" aria-expanded="false" aria-controls="qa4">
+              <span class="qa__text">Who owns what you build?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa4" role="region" aria-labelledby="qq4" hidden>
+            <p>Your content, your data and your customer information are yours and leave with you if we part ways. For custom work built for you, ownership is set in writing in the engagement, so nobody has to guess later. If you use one of our existing platforms, you hold a licence while you subscribe rather than owning the engine.</p>
+          </div>
+        </div>
+      </div>
+      <div class="faq__col">
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq5" aria-expanded="false" aria-controls="qa5">
+              <span class="qa__text">What is AEO, and how is it different from SEO?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa5" role="region" aria-labelledby="qq5" hidden>
+            <p>SEO is being found on a search results page. AEO, answer engine optimisation, is being the source an AI assistant quotes when someone asks it a question. Increasingly people ask ChatGPT or Google's AI summary instead of scrolling results, and those answers cite a handful of sources. AEO is the work of being one of them.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq6" aria-expanded="false" aria-controls="qa6">
+              <span class="qa__text">Can you take over a website or system somebody else built?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa6" role="region" aria-labelledby="qq6" hidden>
+            <p>Usually yes. We will look at what exists before quoting, because inheriting someone else's code is sometimes cheaper to rebuild than to repair, and you deserve to know which before you pay. We will tell you honestly which one it is, including when the honest answer is to leave it alone.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq7" aria-expanded="false" aria-controls="qa7">
+              <span class="qa__text">What happens after the site or system launches?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa7" role="region" aria-labelledby="qq7" hidden>
+            <p>This is the part most people get burned on. A build that ships and is then left alone stops working within a year: search rankings drift, dependencies break, and the thing nobody owns becomes the thing nobody fixes. We stay on for the running, and the engagement says what that covers before you sign it.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq8" aria-expanded="false" aria-controls="qa8">
+              <span class="qa__text">Where are you based, and do you work with businesses outside Singapore?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa8" role="region" aria-labelledby="qq8" hidden>
+            <p>We are based in Singapore and most of our work is with Singapore businesses, which matters for things like PayNow, PDPA and local search. We work remotely and can take on work elsewhere, but we will be straight about it when local knowledge is part of what you are buying.</p>
+          </div>
+        </div>
+        <div class="qa" data-qa>
+          <h3 class="qa__q">
+            <button class="qa__btn" type="button" id="qq9" aria-expanded="false" aria-controls="qa9">
+              <span class="qa__text">How quickly do you reply?</span>
+              <span class="qa__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="qa__a" id="qa9" role="region" aria-labelledby="qq9" hidden>
+            <p>Within one working day, to hello@cairnco.cloud or the form on the contact page. Both partners see it.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq__end">
+      <div class="faq__end-text">
+        <h2>Still not sure it is something we can fix?</h2>
+        <p>Describe the symptom. Working out the actual problem is our job, not yours.</p>
+      </div>
+      <div class="faq__end-go">
+        <a class="btn" href="contact.html">Book a discovery call</a>
+        <a class="btn btn--ghost" href="mailto:hello@cairnco.cloud">hello@cairnco.cloud</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+__FOOT_HTML__
+</div>
+
+<script>
+__NAV_JS__
+
+/* ---------- the accordion ----------
+   At most two answers open at once. Opening a third closes whichever of the two
+   was opened first, so the page can never flood and a click never does nothing.
+   Answers live in the markup and are only hidden, so a crawler and a reader
+   with JS off both still get every word. */
+(function(){
+  var grid = document.getElementById('faqGrid');
+  if(!grid) return;
+  var MAX = 2;
+  var items = [].slice.call(grid.querySelectorAll('[data-qa]'));
+  var order = [];   // indices of what is open, oldest first
+
+  function panel(el){ return el.querySelector('.qa__a'); }
+  function btn(el){ return el.querySelector('.qa__btn'); }
+
+  function paint(i, open){
+    var el = items[i];
+    el.classList.toggle('is-open', open);
+    btn(el).setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(open) panel(el).removeAttribute('hidden');
+    else panel(el).setAttribute('hidden', '');
+  }
+
+  items.forEach(function(el, i){
+    if(el.classList.contains('is-open')) order.push(i);
+    btn(el).addEventListener('click', function(){
+      var at = order.indexOf(i);
+      if(at !== -1){ order.splice(at, 1); paint(i, false); return; }
+      order.push(i);
+      while(order.length > MAX) paint(order.shift(), false);
+      paint(i, true);
+    });
+  });
+
+  /* Without JS every answer is visible, which is the accessible default. The
+     script is what collapses them, so it closes all but the first on load. */
+  items.forEach(function(el, i){ if(order.indexOf(i) === -1) paint(i, false); });
+})();
+</script>
+</body>
+</html>

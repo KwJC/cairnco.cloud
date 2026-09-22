@@ -100,6 +100,66 @@ LANGS = {
 # noindex is deliberate on the three holding pages. Three near-identical
 # 23-word pages in the index is a quality signal problem, not a win. Remove
 # the flag the moment a page has real content, and it joins the sitemap.
+# The FAQ page's questions, in the order they appear: the first five fill the
+# left column, the last five the right. Answers are written so the opening
+# sentence answers the question outright, because that is the part an answer
+# engine lifts. Editing one here changes both the page and its FAQPage schema,
+# so the two can never drift apart.
+FAQ = [
+    ('What happens on a discovery call?',
+     'Thirty minutes, no obligation, and no pitch. You describe what is slow, '
+     'breaking or done by hand, and we ask questions until we understand it. You '
+     'leave with a written picture of what is actually wrong, whether or not you '
+     'hire us. If it is not something we should build, we will say so.'),
+    ('What does CairnCo actually do?',
+     'We are the tech department for businesses that do not have one. That covers '
+     'websites, internal tools, AI workflows, automation, cloud setup, and getting '
+     'found in search and in AI assistants. One team for the whole stack, rather '
+     'than a web agency, an IT guy and a marketing freelancer who never speak to '
+     'each other.'),
+    ('Do you charge a monthly fee, or is it one payment?',
+     'Both, depending on what we build. A one-off site can be a single project fee. '
+     'A system that keeps running, or search work that needs maintaining, is a build '
+     'fee plus a monthly amount. We tell you which shape applies before you commit, '
+     'and we do not take a percentage of your sales.'),
+    ('Do you only build websites?',
+     'No. Websites are the most visible part, but most of the work is the '
+     'unglamorous kind: the spreadsheet that four people edit at once, the order '
+     'form somebody retypes into another system, the report that takes a morning to '
+     'assemble. If it is repetitive and done by hand, it is probably something we '
+     'can automate.'),
+    ('Who owns what you build?',
+     'Your content, your data and your customer information are yours and leave '
+     'with you if we part ways. For custom work built for you, ownership is set in '
+     'writing in the engagement, so nobody has to guess later. If you use one of our '
+     'existing platforms, you hold a licence while you subscribe rather than owning '
+     'the engine.'),
+    ('What is AEO, and how is it different from SEO?',
+     'SEO is being found on a search results page. AEO, answer engine optimisation, '
+     'is being the source an AI assistant quotes when someone asks it a question. '
+     'Increasingly people ask ChatGPT or Google\u2019s AI summary instead of scrolling '
+     'results, and those answers cite a handful of sources. AEO is the work of being '
+     'one of them.'),
+    ('Can you take over a website or system somebody else built?',
+     'Usually yes. We will look at what exists before quoting, because inheriting '
+     'someone else\u2019s code is sometimes cheaper to rebuild than to repair, and you '
+     'deserve to know which before you pay. We will tell you honestly which one it '
+     'is, including when the honest answer is to leave it alone.'),
+    ('What happens after the site or system launches?',
+     'This is the part most people get burned on. A build that ships and is then '
+     'left alone stops working within a year: search rankings drift, dependencies '
+     'break, and the thing nobody owns becomes the thing nobody fixes. We stay on '
+     'for the running, and the engagement says what that covers before you sign it.'),
+    ('Where are you based, and do you work with businesses outside Singapore?',
+     'We are based in Singapore and most of our work is with Singapore businesses, '
+     'which matters for things like PayNow, PDPA and local search. We work remotely '
+     'and can take on work elsewhere, but we will be straight about it when local '
+     'knowledge is part of what you are buying.'),
+    ('How quickly do you reply?',
+     'Within one working day, to hello@cairnco.cloud or the form on the contact '
+     'page. Both partners see it.'),
+]
+
 PAGE_META = {
     'index.html': dict(
         slug='',
@@ -114,6 +174,19 @@ PAGE_META = {
             title='新加坡企业网站、自动化与 AI 技术服务 | CairnCo',
             desc=('CairnCo 为新加坡中小企业建设并运营网站、内部工具、AI 工作流、'
                   '自动化和云服务。负责上线，也负责长期运行。'))),
+    'faq.html': dict(
+        slug='faq',
+        priority='0.8',
+        index=True,
+        # English only for now. The Chinese answers are a separate job, and a
+        # sitemap or hreflang entry for a page that does not exist is worse than
+        # no entry at all, so the whole page is scoped to one language.
+        langs=('en',),
+        en=dict(
+            title='FAQ | CairnCo',
+            desc=('Answers about working with CairnCo: discovery calls, how we bill, '
+                  'who owns what we build, AEO versus SEO, and what happens after '
+                  'launch.'))),
     'contact.html': dict(
         slug='contact',
         priority='0.8',
@@ -183,9 +256,14 @@ def localized_meta(filename, lang):
     return d
 
 
+def page_langs(filename):
+    """Which languages a page exists in. Absent means all of them."""
+    return PAGE_META[filename].get('langs', tuple(LANGS))
+
 def alternates(filename):
     rows = []
-    for lang, cfg in LANGS.items():
+    for lang in page_langs(filename):
+        cfg = LANGS[lang]
         rows.append('<link rel="alternate" hreflang="%s" href="%s">'
                     % (cfg['html'], page_url(lang, filename)))
     rows.append('<link rel="alternate" hreflang="x-default" href="%s">' % x_default_url(filename))
@@ -193,7 +271,9 @@ def alternates(filename):
 
 
 def x_default_url(filename):
-    return SITE + '/' if filename == 'index.html' else page_url('en', filename)
+    if filename == 'index.html':
+        return SITE + '/'
+    return page_url(page_langs(filename)[0], filename)
 
 
 def jsonld_home(lang):
@@ -246,6 +326,18 @@ def jsonld_crumb(lang, name, path):
             + '</script>')
 
 
+def jsonld_faq():
+    import json
+    doc = {'@context': 'https://schema.org', '@type': 'FAQPage',
+           'mainEntity': [
+               {'@type': 'Question', 'name': q,
+                'acceptedAnswer': {'@type': 'Answer', 'text': a}}
+               for q, a in FAQ]}
+    return ('<script type="application/ld+json">'
+            + json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
+            + '</script>')
+
+
 def head_meta(filename, lang):
     m = localized_meta(filename, lang)
     cfg = LANGS[lang]
@@ -277,6 +369,8 @@ def head_meta(filename, lang):
         out.append(jsonld_home(lang))
     else:
         out.append(jsonld_crumb(lang, m['title'].split(' | ')[0], path))
+    if filename == 'faq.html':
+        out.append(jsonld_faq())
     return '\n'.join(out)
 
 
@@ -287,11 +381,11 @@ def write_sitemap(root, dist):
     for f, m in PAGE_META.items():
         if not m['index']:
             continue
-        for lang in LANGS:
+        for lang in page_langs(f):
             alt = ''.join(
                 '<xhtml:link rel="alternate" hreflang="%s" href="%s" />'
-                % (cfg['html'], page_url(code, f))
-                for code, cfg in LANGS.items())
+                % (LANGS[code]['html'], page_url(code, f))
+                for code in page_langs(f))
             alt += '<xhtml:link rel="alternate" hreflang="x-default" href="%s" />' % x_default_url(f)
             rows.append('  <url><loc>%s</loc><lastmod>%s</lastmod>'
                         '<changefreq>weekly</changefreq><priority>%s</priority>%s</url>'
@@ -523,9 +617,20 @@ ZH_TEXT = {
 }
 
 
+def strip_en_only(text, lang):
+    """<!--EN-ONLY--> ... <!--/EN-ONLY--> survives on English pages and is cut
+    out of every other language. It exists so the shared nav can carry a link to
+    a page that is only built in English, without pointing Chinese readers at a
+    URL that 404s."""
+    if lang == 'en':
+        return text.replace('<!--EN-ONLY-->', '').replace('<!--/EN-ONLY-->', '')
+    return re.sub(r'<!--EN-ONLY-->.*?<!--/EN-ONLY-->', '', text, flags=re.S)
+
+
 def localize(text, lang):
     cfg = LANGS[lang]
     text = text.replace('<html lang="en">', '<html lang="%s">' % cfg['html'])
+    text = strip_en_only(text, lang)
     head, sep, body = text.partition('</head>')
     if not sep:
         head, body = '', text
@@ -551,6 +656,7 @@ def rewrite_links(text, lang):
         'href="landmarks.html"': 'href="%s/landmarks/"' % LANGS[lang]['prefix'],
         'href="kit.html"': 'href="%s/kit/"' % LANGS[lang]['prefix'],
         'href="newsroom.html"': 'href="%s/newsroom/"' % LANGS[lang]['prefix'],
+        'href="faq.html"': 'href="%s/faq/"' % LANGS[lang]['prefix'],
     }
     for a, b in repl.items():
         text = text.replace(a, b)
@@ -696,12 +802,15 @@ sub = read('sub.template.html')
 pages = [
     ('index.html', home, {}),
     ('contact.html', read('contact.template.html'), {}),
+    ('faq.html', read('faq.template.html'), {}),
 ]
 for filename, slug, name in HOLDING_PAGES:
     pages.append((filename, sub, {'__PAGE_NAME__': name}))
 
 for lang in LANGS:
     for filename, template, extra in pages:
+        if lang not in page_langs(filename):
+            continue
         data = dict(extra)
         if filename in ('landmarks.html', 'kit.html', 'newsroom.html') and lang == 'zh':
             data['__PAGE_NAME__'] = localized_meta(filename, lang)['title'].split(' | ')[0]
