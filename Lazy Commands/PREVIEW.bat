@@ -35,7 +35,10 @@ echo.
 echo   Starting a small web server on dist\ ...
 echo.
 
-start "CairnCo preview server - CLOSE THIS WINDOW TO STOP" /d "%~dp0..\dist" cmd /k python -m http.server 8000
+REM  --directory, not /d. The server must NOT stand inside dist\: a
+REM  Windows folder cannot be deleted while a running process sits in
+REM  it, which would make every later build fail.
+start "CairnCo preview server - CLOSE THIS WINDOW TO STOP" /d "%~dp0.." cmd /k python -m http.server 8000 --directory dist
 
 timeout /t 2 /nobreak >nul
 start "" http://localhost:8000

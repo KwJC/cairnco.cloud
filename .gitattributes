@@ -5,6 +5,12 @@
 # generated files from another machine.
 * text=auto eol=lf
 
+# Windows batch files are the exception. cmd.exe seeks by byte offset
+# when it hits a goto or a call, and with LF-only endings it can land
+# mid-line and fail to find a label. They must be CRLF in the working
+# copy, or the buttons break in ways that look random.
+*.bat text eol=crlf
+
 # Binary: never touch these.
 *.png binary
 *.jpg binary

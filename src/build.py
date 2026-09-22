@@ -788,9 +788,23 @@ def fill(text, extra=None):
 
 
 DIST = ROOT / 'dist'
-if DIST.exists():
-    shutil.rmtree(DIST)
+# Empty dist, but never remove the directory itself. On Windows a folder that
+# any running process is sitting in cannot be deleted, and the local preview
+# server sits in exactly this one. Removing the contents is all the build
+# needs; rmtree's final rmdir was the only part that ever failed.
 DIST.mkdir(exist_ok=True)
+for _stale in DIST.iterdir():
+    try:
+        if _stale.is_dir() and not _stale.is_symlink():
+            shutil.rmtree(_stale)
+        else:
+            _stale.unlink()
+    except OSError as _err:
+        sys.exit(
+            'could not clear dist\\%s: %s\n'
+            'Something has that file open. The usual cause is the local preview:\n'
+            'close the "CairnCo preview server" window, then build again.'
+            % (_stale.name, _err))
 
 print('building cairnco.cloud')
 _missing = [s for s, _ in SOCIAL_ICONS if s not in _found]
