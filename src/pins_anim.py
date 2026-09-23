@@ -21,8 +21,8 @@ import json, pathlib
 # The seven landmark pins, in the order they appear in index.template.html.
 # x/y must match the --x/--y on each button; rot is where it comes to rest.
 PINS = json.loads('''[{"i": 0, "x": "24%", "y": "70%", "lab": "Websites", "rot": -67.3, "dx": -17.7, "dy": 0.1, "a": 0.635}, {"i": 1, "x": "45%", "y": "34%", "lab": "Internal Tools", "rot": 57.2, "dx": -2.7, "dy": -7.7, "a": 0.648}, {"i": 2, "x": "63%", "y": "57%", "lab": "AI Workflows", "rot": 58.8, "dx": -3.0, "dy": 5.9, "a": 0.661}, {"i": 3, "x": "81%", "y": "26%", "lab": "Automation", "rot": -59.8, "dx": -11.1, "dy": 2.3, "a": 0.674}, {"i": 4, "x": "18%", "y": "45%", "lab": "SEO &amp; AEO", "rot": 85.4, "dx": 3.1, "dy": -1.9, "a": 0.687}, {"i": 5, "x": "52%", "y": "86%", "lab": "Marketing", "rot": 86.3, "dx": -18.1, "dy": 6.5, "a": 0.7}, {"i": 6, "x": "88%", "y": "74%", "lab": "Cloud", "rot": -65.0, "dx": -14.2, "dy": -6.9, "a": 0.713}]''')
-INTRO_MS = 6375.0          # typing -> hero readable, matching board 7 exactly
-TOTAL_MS = 8800.0          # ...through to the last pin settling
+INTRO_MS = 4325.0          # typing -> hero readable (intro off at 4000 + a 325ms beat)
+TOTAL_MS = 6750.0          # ...through to the last pin settling (2425ms of pin action, unchanged)
 
 # The map is fluid, so the run-in is a share of the map box rather than px.
 HOPS  = {0: 4, 1: 3, 2: 2, 3: 4, 4: 3, 5: 3, 6: 2}
