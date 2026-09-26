@@ -97,9 +97,11 @@ LANGS = {
                   'AI 工作流', '自动化', '云服务']),
 }
 
-# noindex is deliberate on the three holding pages. Three near-identical
-# 23-word pages in the index is a quality signal problem, not a win. Remove
-# the flag the moment a page has real content, and it joins the sitemap.
+# noindex is deliberate on Landmarks and Newsroom, which are still holding
+# pages. Near-identical 30-word pages in the index are a quality signal problem,
+# not a win. Remove the flag the moment a page has real content, and it joins
+# the sitemap. The Kit came off it on 26 Sep: the English page is full, and the
+# Chinese one is indexed with it at JC's decision while its copy is written.
 # The FAQ page's questions, in the order they appear: the first five fill the
 # left column, the last five the right. Answers are written so the opening
 # sentence answers the question outright, because that is the part an answer
@@ -209,12 +211,19 @@ PAGE_META = {
                 desc='CairnCo 已完成的作品。页面正在撰写中。')),
     'kit.html': dict(
         slug='kit',
-        priority='0.3',
-        index=False,
-        en=dict(title='The Kit | CairnCo',
-                desc='Reusable pieces CairnCo builds with. This page is being written.'),
-        zh=dict(title='工具箱 | CairnCo',
-                desc='CairnCo 常用的可复用组件。页面正在撰写中。')),
+        # a real page now, not a holding page: same weight as FAQ and contact
+        priority='0.8',
+        index=True,
+        en=dict(title='The Kit | What CairnCo builds for Singapore businesses',
+                # 141 characters. Google truncates a snippet around 155 to 160,
+                # and a cut description reads as carelessness on a page whose
+                # whole job is to look like a company that finishes things.
+                desc='Websites, internal tools, AI workflows, automation, SEO and AEO, '
+                     'marketing and cloud. The seven things CairnCo builds for '
+                     'Singapore businesses.'),
+        zh=dict(title='工具箱 | CairnCo 为新加坡企业提供的七项服务',
+                desc='网站建设、内部工具、AI 工作流、自动化、SEO 与 AEO、营销、云服务。'
+                     'CairnCo 为新加坡中小企业做的七件事，以及每一项里具体包含什么。')),
     'newsroom.html': dict(
         slug='newsroom',
         priority='0.3',
@@ -417,6 +426,18 @@ def strip_svg(text):
     return _C2PA_SVG.sub('', text)
 
 
+def svg_inner(name):
+    """An asset SVG's paths with the <svg> wrapper removed, so a page can define
+    the field once in a hidden <defs> and pull it in with <use> wherever it is
+    needed. The Kit shows eight contour fields; eight inline copies of
+    topo-dense.svg would add about 400KB to that page for no visual gain."""
+    raw = asset(name)
+    m = re.search(r'<svg[^>]*>(.*)</svg>', raw, re.S)
+    if not m:
+        sys.exit('%s does not look like an SVG' % name)
+    return re.sub(r'<metadata>.*?</metadata>', '', m.group(1), flags=re.S).strip()
+
+
 def clean_png(raw):
     """Return PNG bytes with only the chunks a browser needs."""
     if raw[:8] != b'\x89PNG\r\n\x1a\n':
@@ -467,6 +488,10 @@ def region(text, tag, comment=False):
         sys.exit('missing %s region in index.template.html' % tag)
     return m.group(1).strip()
 
+
+# Attributes whose values are identifiers, never prose. localize() holds these
+# so the Chinese substring replace cannot rewrite an id or a form field name.
+ID_ATTRS = ('id', 'for', 'name', 'aria-labelledby', 'aria-controls', 'aria-describedby')
 
 ZH_TEXT = {
     'Menu': '菜单',
@@ -614,6 +639,76 @@ ZH_TEXT = {
     'Sending': '发送中',
     'That did not send.': '消息没有发送成功。',
     ' Please email hello@cairnco.cloud.': ' 请发送邮件到 hello@cairnco.cloud。',
+
+    # ---- The Kit. Adapted rather than translated word for word: the
+    # Chinese market searches different phrases, and the 25 Sep sweep found
+    # the Chinese side is where CairnCo already ranks first and where the
+    # competition is measurably weaker.
+    "The manual processes worth automating first are the boring ones. Retyping between two systems. The report someone assembles every Tuesday. The quote that becomes an invoice by hand. Each one is small enough to tolerate, and together they are a day a week, which is why business process automation pays back faster in a small company than a large one. E-invoicing is the one with a deadline attached: InvoiceNow is Singapore's Peppol network, and GST registered businesses are being phased onto it.": '最值得先自动化的，是那些无聊的流程。在两个系统之间重复录入。每周二有人手工拼出来的报表。手工把报价改成发票。每一件都小到可以忍，加起来就是一周一天。这就是业务流程自动化在小公司回本比大公司更快的原因。其中电子发票有明确的时间表：InvoiceNow 是新加坡的 Peppol 网络，GST 注册企业正在分阶段接入。',
+    'Cloud is the part nobody thinks about until it breaks: where the site lives, where the backups are, who can get in, and what happens when the person who set it up leaves. We run it on Cloudflare, we set up company email and the records that keep it out of spam, and the domain, the hosting account and the DNS stay registered in your name, not ours. That is what website ownership actually means, and it is the difference between changing supplier and starting again.': '云服务是出事之前没有人会想到的那一块：网站放在哪里、备份在哪里、谁能登录，以及当初把这些设置好的人离职以后怎么办。我们用 Cloudflare 运维，帮你配好企业邮箱和让邮件不进垃圾箱的那几条记录，而域名、主机账号和 DNS 都登记在你的名下，不在我们名下。这才是网站所有权真正的意思，也是换一家供应商和推倒重来之间的差别。',
+    "Being found in Singapore now happens in two places: search results, and the answers ChatGPT, Gemini and Google's AI Overviews give when somebody asks instead of searching. That second one is answer engine optimisation, also called AEO or GEO. In September 2026 we ran 44 searches a Singapore buyer might type and Google returned an AI Overview on 40 of them. Both halves are won the same way: a site a machine can read, and content worth quoting.": '在新加坡被找到，现在发生在两个地方：搜索结果，以及有人直接提问时 ChatGPT、Gemini 和 Google AI 摘要给出的答案。后者叫答案引擎优化，也写作 AEO 或 GEO。2026 年 9 月，我们实测了 44 个新加坡买家可能输入的搜索，其中 40 个 Google 返回了 AI 摘要。两边的打法是同一套：一个机器读得懂的网站，加上值得被引用的内容。',
+    'CairnCo designs, builds and maintains websites for small businesses in Singapore. Most agencies hand over a folder of files and disappear, so the site goes live and then quietly stops working: the plugin breaks, the rankings drift, nobody owns it. We stay on for the maintenance, and the domain and hosting stay registered in your name. Every site is hand built, in English and Chinese, so there is no theme to break and no licence to renew.': 'CairnCo 为新加坡的中小企业设计、开发并长期维护网站。多数公司交付一个文件夹就消失了：网站上线之后慢慢出问题，插件坏掉、排名下滑、没有人负责。我们把网站建好，放在我们自己运维的基础设施上，并在上线之后继续维护，域名和主机都登记在你的名下。每一个网站都是手写代码，中英双语，没有模板会坏，也没有授权费要续。',
+    'Internal tools are the systems a business runs on inside: customer records, job and work order tracking, stock. Most Singapore SMEs run those on a spreadsheet four people edit at once, and a process someone holds in their head. It works until the team grows, the file gets copied, or that person goes on leave. We build the tool that replaces it, with a login, one version of the truth, and a record of who changed what.': '内部工具就是一家公司内部真正在用的系统：客户资料、工单与任务追踪、库存。新加坡大多数中小企业把这些放在一份四个人同时编辑的表格里，再加上某个人脑子里记着的流程。团队一变大、文件一被复制、那个人一请假，它就撑不住了。我们把它换成一套有登录、有唯一数据、有修改记录的系统。',
+    'AI workflow automation earns its place where the work is reading, sorting and drafting. It does not earn it where the work is deciding. So we build the reading and the drafting and leave a person holding the decision, because a system that guesses without a check is worse than doing it by hand. Everything runs against your own documents and records, not the open internet.': 'AI 工作流自动化真正有价值的地方，是阅读、分类和起草，而不是替你做决定。所以我们把阅读和起草交给系统，把决定留给人：一个没有复核就自行猜测的系统，比手工做还糟。所有处理都只针对你自己的文档和记录，不接入公开互联网。',
+    'A site nobody visits is a brochure in a drawer. This is the work that brings people to it and turns arrivals into enquiries. It sits on top of everything else here, because traffic pointed at a slow site or an unanswered form is money spent annoying people.': '没有人访问的网站，就是抽屉里的一本宣传册。这部分工作负责把人带过来，并把访问变成询价。它建立在前面所有东西之上：把流量导向一个很慢的网站，或者一个没人回复的表单，只是花钱惹人烦。',
+    'Seven things we build for Singapore businesses: websites, internal tools, AI workflows, automation, SEO and AEO, marketing and cloud. Most jobs use three or four at once. That is the argument for one tech partner rather than three suppliers.': '我们为新加坡企业做的七件事：网站建设、内部工具、AI 工作流、自动化、SEO 与 AEO、营销、云服务。大多数项目会同时用到其中三到四项。这就是找一个技术伙伴、而不是三家供应商的理由。',
+    'That is what the first call is for. Thirty minutes, no obligation, and you leave with a written picture of what is actually wrong, whether or not you hire us.': '第一次通话就是用来把这件事问清楚的。三十分钟，没有任何义务。无论最后是否合作，你都会带走一份关于问题究竟出在哪里的书面说明。',
+    'Not sure which of these you need?': '不确定自己需要哪一项？',
+    'AI assistant over your documents': '基于内部文档的 AI 助手',
+    'Invoice and receipt data capture': '发票与收据数据提取',
+    'WhatsApp enquiries into your CRM': 'WhatsApp 询单接入 CRM',
+    'Answer engine optimisation (AEO)': '答案引擎优化 AEO',
+    'Email security: SPF, DKIM, DMARC': '邮件安全：SPF、DKIM、DMARC',
+    'Website maintenance and support': '网站维护与技术支持',
+    'Xero and QuickBooks integration': 'Xero 与 QuickBooks 集成',
+    'Google Ads setup and management': 'Google Ads 开户与代运营',
+    'Migration off your old provider': '从旧供应商迁移',
+    'Inventory and stock management': '库存管理系统',
+    'Landing pages built to convert': '高转化落地页',
+    'Tap to explore Internal Tools': '点击查看内部工具',
+    'Google Business Profile setup': 'Google 商家资料设置',
+    'Technical SEO audit and fixes': '技术 SEO 审计与修复',
+    'Business email on your domain': '企业域名邮箱',
+    'English and Chinese websites': '中英双语网站',
+    'Restaurant ordering systems': '餐饮在线点餐系统',
+    'Custom software development': '定制软件开发',
+    'Job and work order tracking': '工单与任务追踪',
+    'Tap to explore AI Workflows': '点击查看AI 工作流',
+    'InvoiceNow and Peppol setup': 'InvoiceNow 与 Peppol 对接',
+    'Business process automation': '业务流程自动化',
+    'Getting named in AI answers': '让 AI 答案提到你',
+    'Conversion tracking and GA4': '转化追踪与 GA4',
+    'Managed hosting and domains': '托管与域名代管',
+    'Web design and development': '网站设计与开发',
+    'Tap to explore SEO and AEO': '点击查看SEO 与 AEO',
+    'Lead capture and follow-up': '线索收集与跟进',
+    'Tap to explore Automation': '点击查看自动化',
+    'Design. Build. Maintain.': '设计。建站。维护。',
+    'CRM and customer records': 'CRM 客户管理系统',
+    'Customer enquiry chatbot': '客户咨询聊天机器人',
+    'Tap to explore Marketing': '点击查看营销',
+    'Tap to explore Websites': '点击查看网站建设',
+    'Connect. Trigger. Done.': '连接。触发。完成。',
+    'Reach. Convert. Repeat.': '触达。转化。复购。',
+    'Explore Internal Tools': '查看内部工具',
+    'AI workflow automation': 'AI 工作流自动化',
+    'Ranked. Quoted. Found.': '排名。引用。被找到。',
+    'Scroll down to explore': '向下滚动查看',
+    'Clients. Staff. Jobs.': '客户。员工。工单。',
+    'Host. Secure. Own it.': '托管。安全。归你所有。',
+    'Talk to us about this': '就这一项聊聊',
+    'Explore AI Workflows': '查看AI 工作流',
+    'Tap to explore Cloud': '点击查看云服务',
+    'Explore SEO and AEO': '查看SEO 与 AEO',
+    'Read. Sort. Draft.': '阅读。分类。起草。',
+    'Explore Automation': '查看自动化',
+    'Explore Marketing': '查看营销',
+    'Tap to<br>explore': '点击<br>查看',
+    'Explore Websites': '查看网站建设',
+    'Explore Cloud': '查看云服务',
+    'Read the FAQ': '查看常见问题',
+    'Talk to us': '联系我们',
+    'Close': '关闭',
 }
 
 
@@ -638,14 +733,30 @@ def localize(text, lang):
     body = add_language_links(body, lang)
     if lang == 'zh':
         held = []
-        def hold_script(match):
+
+        def hold(match):
             held.append(match.group(0))
-            return '@@SCRIPT_%d@@' % (len(held) - 1)
-        body = re.sub(r'<script\b.*?</script>', hold_script, body, flags=re.S)
+            return '@@HOLD_%d@@' % (len(held) - 1)
+
+        # Scripts are code, not copy.
+        body = re.sub(r'<script\b.*?</script>', hold, body, flags=re.S)
+
+        # Identifier attributes are held as well. ZH_TEXT is a blind substring
+        # replace, so without this an id like kitSheetName becomes kitSheet姓名
+        # the moment 'Name' is in the table, and every getElementById against it
+        # returns null. That is exactly how it broke.
+        #
+        # Only these, and deliberately NOT class: several translation keys carry
+        # their own markup, for example the rotating hero lines, which are keyed
+        # on 'We <span class="hero__key">kit</span> you out.'. Holding class
+        # values stops those keys matching and the page silently reverts to
+        # English. ID_ATTRS is guarded against that below.
+        body = re.sub(r'\s(?:%s)="[^"]*"' % '|'.join(ID_ATTRS), hold, body)
+
         for src, dst in sorted(ZH_TEXT.items(), key=lambda item: len(item[0]), reverse=True):
             body = body.replace(src, dst)
-        for i, script in enumerate(held):
-            body = body.replace('@@SCRIPT_%d@@' % i, script)
+        for i, chunk in enumerate(held):
+            body = body.replace('@@HOLD_%d@@' % i, chunk)
     return head + sep + body if sep else body
 
 
@@ -760,6 +871,11 @@ SHARED = {
     '__NAV_JS__': read('nav.js').strip(),
     '__TOPO_OPEN__': asset('topo-open.svg'),
     '__TOPO_DENSE__': asset('topo-dense.svg'),
+    '__TOPO_DENSE_DEFS__': svg_inner('topo-dense.svg'),
+    # drawn at the shapes The Kit uses: a wide short hero band, and an
+    # upright field the banners each show a different window of
+    '__TOPO_BAND_DEFS__': svg_inner('topo-band.svg'),
+    '__TOPO_CARD_DEFS__': svg_inner('topo-card.svg'),
 }
 
 _found = []
@@ -812,6 +928,16 @@ if _missing:
     print('  social icons still placeholders: %s' % ', '.join(_missing))
     print('  drop the official SVGs into src/icons/ and rebuild')
 
+# A translation key that carried an identifier attribute would never match,
+# because localize() holds those before replacing. Fail loudly rather than
+# quietly shipping an English string on a Chinese page.
+_clash = sorted({k for k in ZH_TEXT for a in ID_ATTRS if (' %s="' % a) in k})
+if _clash:
+    print('ZH_TEXT keys contain an identifier attribute, which localize() holds:')
+    for k in _clash:
+        print('  %s' % k[:90])
+    sys.exit('drop the attribute from the key, or remove it from ID_ATTRS')
+
 sub = read('sub.template.html')
 _faq_tpl = read('faq.template.html')
 
@@ -835,8 +961,11 @@ pages = [
     ('index.html', home, {}),
     ('contact.html', read('contact.template.html'), {}),
     ('faq.html', _faq_tpl, {}),
+    ('kit.html', read('kit.template.html'), {}),
 ]
 for filename, slug, name in HOLDING_PAGES:
+    if filename == 'kit.html':
+        continue          # a real page now, built from its own template above
     pages.append((filename, sub, {'__PAGE_NAME__': name}))
 
 for lang in LANGS:

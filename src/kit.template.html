@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+__HEAD__
+__META__
+
+<style>
+__SHELL_CSS__
+
+/* ---------- shared section furniture, same as the FAQ page ---------- */
+.sec{position:relative;padding-block:var(--s5)}
+.sec::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(61,90,80,.26) 12%,rgba(61,90,80,.26) 88%,transparent)}
+.sec--first::before{display:none}
+
+/* ---------- hero ----------
+   Deeper paper, the dense contours at full strength, and the home page's own
+   text wash between the two. This is the only band on the page that runs edge
+   to edge, which is what makes it read as its own section. */
+.kit-hero{padding-block:0;background:var(--paper-deep);overflow:hidden;
+  border-bottom:1px solid rgba(61,90,80,.22)}
+.kit-hero__in{position:relative;z-index:1;padding-block:var(--s7) var(--s6)}
+.kit-hero .topo svg{width:100%;height:100%;display:block}
+.kit-hero__text{position:relative;max-width:46ch}
+/* The ellipse has to finish inside its own box or the box's straight edges cut
+   through it while it is still opaque, and a straight cut through a soft wash
+   is what reads as a square. Half width equals centre offset, 50% at 50% on the
+   other axis, so it reaches zero exactly at the edge. Stops are the home
+   page's: peaks at 78%, never solid. */
+.kit-hero__text::before{content:"";position:absolute;inset:-4rem -18% -3.5rem -14%;z-index:-1;
+  background:radial-gradient(ellipse 42% 50% at 42% 50%,
+    rgba(237,230,216,.78) 18%,rgba(237,230,216,.60) 58%,rgba(237,230,216,0) 100%)}
+.kit-hero h1{font-size:clamp(2.6rem,6vw,4rem);letter-spacing:-.03em}
+.kit-hero__sub{margin-top:var(--s3);font-size:clamp(1.06rem,1.5vw,1.25rem);
+  line-height:1.56;color:var(--body);max-width:40ch}
+.kit-hero__cue{display:none}
+
+/* ---------- one topic: banner on one side, content on the other ---------- */
+.kit-topic__row{display:flex;gap:var(--s4);align-items:stretch}
+.kit-topic--right .kit-topic__row{flex-direction:row-reverse}
+
+.bn{flex:none;width:clamp(280px,46%,520px);position:relative;overflow:hidden;
+  box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;
+  min-height:clamp(250px,25vw,330px);padding:var(--s4) clamp(1.5rem,2.6vw,2.25rem);
+  text-decoration:none;color:var(--teal);background:var(--paper-raised);
+  border:1px solid rgba(61,90,80,.30);border-radius:14px;
+  transition:background .2s var(--ease),border-color .2s var(--ease),
+    color .2s var(--ease),transform .12s var(--ease)}
+.bn:hover,.bn:focus-visible{background:var(--rust);border-color:var(--rust);color:var(--paper-raised)}
+.bn:active{transform:scale(.99)}
+
+/* .10 at rest, down from .16. The field is texture, not decoration: it has to
+   sit behind the name rather than compete with it. On hover the lines are paper
+   on terracotta, so they read light, not dark, and barely needed easing off. */
+.bn__topo{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.10;
+  transition:opacity .2s var(--ease)}
+.bn:hover .bn__topo,.bn:focus-visible .bn__topo{opacity:.26}
+/* The svg fills the banner exactly. Which part of the field each banner shows
+   is set by its own viewBox window in the markup, not by nudging the element
+   around: an offset element can leave a corner bare, a viewBox window cannot. */
+.bn__topo svg{width:100%;height:100%;display:block}
+
+/* The name sits ON the banner's vertical centre line, not the group's middle.
+   Space above it is the mark plus the gap; space below is the gap plus the tag.
+   Making those two equal is what puts the name on the line, and it holds at any
+   banner height. Mark 34px and tag line box 18px, so the lower gap is 16px more. */
+.bn__mark{position:relative;z-index:1;display:block;margin-bottom:var(--bn-gap)}
+.bn__mark svg{width:34px;height:34px;display:block}
+.bn__name{position:relative;z-index:1;margin:0;font-family:var(--display);
+  font-size:clamp(1.9rem,3.2vw,2.6rem);font-weight:500;line-height:1.1;
+  letter-spacing:-.032em;color:var(--ink);transition:color .2s var(--ease)}
+.bn__tag{display:block;position:relative;z-index:1;margin:calc(var(--bn-gap) + 16px) 0 0;
+  font-family:var(--mono);font-size:.72rem;font-weight:700;line-height:18px;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--teal);
+  transition:color .2s var(--ease)}
+.bn{--bn-gap:1.55rem}
+.bn:hover .bn__name,.bn:focus-visible .bn__name,
+.bn:hover .bn__tag,.bn:focus-visible .bn__tag{color:var(--paper-raised)}
+
+.bn__go{position:absolute;z-index:1;left:clamp(1.5rem,2.6vw,2.25rem);
+  bottom:var(--s4);display:flex;align-items:center;gap:.55rem;
+  font-size:.95rem;font-weight:500;color:var(--paper-raised);
+  opacity:0;transform:translateY(8px);
+  transition:opacity .22s var(--ease),transform .22s var(--ease)}
+.bn:hover .bn__go,.bn:focus-visible .bn__go{opacity:1;transform:none}
+.bn__arrow{width:15px;height:15px;flex:none}
+.bn__tap{display:none}
+
+/* ---------- the content beside it ---------- */
+.kit-topic__body{flex:1 1 0;min-width:0;padding-top:.25rem}
+.kit-topic__desc{margin:0;font-size:1.06rem;line-height:1.68;color:var(--body);max-width:52ch}
+.kit-tasks{list-style:none;margin:var(--s4) 0 0;padding:0;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3) var(--s4)}
+.kit-tasks li{border-top:1px solid rgba(61,90,80,.18);padding-top:.85rem;
+  display:flex;align-items:baseline;gap:.8rem;
+  font-size:1rem;font-weight:500;line-height:1.38;letter-spacing:-.005em;color:var(--ink)}
+.kit-tasks li::before{content:"";flex:none;width:15px;height:1.5px;
+  background:var(--rust);transform:translateY(-6px)}
+
+/* ---------- closing ---------- */
+.kit-end{padding-top:var(--s5)}
+.kit-end h2{font-size:clamp(1.5rem,2.8vw,2.1rem);max-width:24ch}
+.kit-end p{margin-top:var(--s3);font-size:1.06rem;line-height:1.62;color:var(--body);max-width:48ch}
+.kit-end__go{display:flex;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s4)}
+
+/* ================= phone ================= */
+@media (max-width:820px){
+  /* hero fills the screen, with the cue sitting on the bottom edge of it */
+  .kit-hero__in{min-height:calc(100vh - var(--navh));
+    min-height:calc(100svh - var(--navh));
+    display:flex;flex-direction:column;justify-content:center;
+    padding-block:var(--s5) var(--s4)}
+  .kit-hero__text{max-width:none;margin-block:auto}
+  .kit-hero__text::before{inset:-2.5rem -8% -2rem -8%;
+    background:radial-gradient(ellipse 46% 50% at 46% 50%,
+      rgba(237,230,216,.78) 18%,rgba(237,230,216,.60) 58%,rgba(237,230,216,0) 100%)}
+  .kit-hero__cue{display:flex;flex-direction:column;align-items:center;gap:.6rem;
+    color:var(--teal);text-decoration:none;padding-top:var(--s4)}
+  .kit-hero__cue svg{width:22px;height:22px}
+  .kit-hero__cue span{font-family:var(--mono);font-size:.62rem;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase}
+
+  /* a banner becomes a slim button, centred, of equal height to every other */
+  .kit-topic{padding-block:0}
+  .kit-topic::before{display:none}
+  .kit-topic:first-of-type{padding-top:var(--s4)}
+  .kit-topic__row{display:block}
+  .bn{width:100%;max-width:520px;margin-inline:auto;flex-direction:row;align-items:center;gap:.7rem;
+    min-height:0;padding:1.05rem 1.1rem;margin-block:.45rem;border-radius:12px}
+  /* the mark gets its own opaque tile, so no contour line crosses it */
+  .bn__mark{flex:none;width:46px;height:46px;margin:0;border-radius:11px;
+    background:var(--paper-raised);border:1px solid rgba(61,90,80,.30);
+    display:flex;align-items:center;justify-content:center}
+  .bn__mark svg{width:24px;height:24px}
+  .bn__words{position:relative;z-index:1;flex:1 1 auto;min-width:0}
+  .bn__name{font-size:clamp(1.25rem,5.6vw,1.6rem)}
+  .bn__tag{margin:.42rem 0 0;font-size:clamp(.52rem,2.45vw,.62rem);
+    line-height:1.3;letter-spacing:.12em}
+  .bn__go{display:none}
+  .bn__tap{display:block;position:relative;z-index:1;flex:none;text-align:right;
+    font-family:var(--mono);font-size:.58rem;font-weight:700;line-height:1.5;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}
+  /* no hover on a touch screen, so the banner keeps its resting colours */
+  .bn:hover{background:var(--paper-raised);border-color:rgba(61,90,80,.30);color:var(--teal)}
+  .bn:hover .bn__name{color:var(--ink)}
+  .bn:hover .bn__tag{color:var(--teal)}
+  .bn:hover .bn__topo{opacity:.16}
+
+  /* the content moves into the window. It stays in the markup for a crawler
+     and for anyone without JavaScript: the script hides it, the page does not. */
+  .kit-js .kit-topic__body{display:none}
+  .kit-topic__body{padding-top:var(--s3)}
+  .kit-tasks{grid-template-columns:1fr;gap:var(--s2)}
+  .kit-topic__desc{max-width:none}
+}
+
+/* ---------- the window a banner opens ---------- */
+html.kit-locked{overflow:hidden}
+html.kit-locked body{position:fixed;left:0;right:0;width:100%;overflow:hidden}
+/* A dialog is display:none when closed. Setting display:flex unconditionally
+   would make it visible with nothing open, so the layout only applies to [open]. */
+.ksheet{display:none;border:0;padding:0;margin:0;background:transparent;
+  max-width:none;max-height:none;width:100%;height:100%;position:fixed;inset:0}
+.ksheet[open]{display:flex;align-items:center;justify-content:center}
+.ksheet::backdrop{background:rgba(31,42,38,.55);animation:ksheetFade .34s var(--ease) both}
+@keyframes ksheetFade{from{opacity:0}to{opacity:1}}
+/* Inset from every edge, so the strip of backdrop around it is a tap target
+   that closes. No drop shadow: a 1px border with a wide blur is banned, and the
+   dimmed backdrop already separates the window from the page. */
+.ksheet__panel{box-sizing:border-box;width:calc(100% - 32px);max-width:520px;
+  max-height:88vh;max-height:88svh;
+  display:flex;flex-direction:column;overflow:hidden;will-change:transform,opacity;
+  background:var(--paper-raised);border:1px solid rgba(61,90,80,.30);border-radius:18px}
+.ksheet__head{flex:none;display:flex;align-items:flex-start;gap:.9rem;padding:1.4rem 1.6rem 0}
+.ksheet__mark{flex:none;width:46px;height:46px;border-radius:11px;background:var(--paper-raised);
+  border:1px solid rgba(61,90,80,.30);display:flex;align-items:center;justify-content:center;
+  color:var(--teal)}
+.ksheet__mark svg{width:24px;height:24px}
+.ksheet__title{flex:1 1 auto;min-width:0}
+.ksheet__title h2{font-size:clamp(1.6rem,7.4vw,1.95rem);line-height:1.12;letter-spacing:-.03em}
+.ksheet__tag{margin:.62rem 0 0;font-family:var(--mono);font-size:clamp(.58rem,2.65vw,.66rem);
+  font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+.ksheet__x{flex:none;width:36px;height:36px;padding:0;border:1px solid rgba(61,90,80,.26);
+  border-radius:999px;background:transparent;color:var(--teal);cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.ksheet__x svg{width:15px;height:15px}
+.ksheet__body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:1.2rem 1.6rem .5rem;-webkit-overflow-scrolling:touch}
+/* word and line spacing scale with the screen, not with a fixed pixel size */
+.ksheet__body .kit-topic__desc{font-size:clamp(.94rem,3.95vw,1.04rem);line-height:1.66;max-width:none}
+.ksheet__body .kit-tasks{grid-template-columns:1fr;gap:.7rem;margin-top:1.3rem}
+.ksheet__body .kit-tasks li{font-size:clamp(.93rem,3.9vw,1rem);padding-top:.75rem}
+.ksheet__foot{flex:none;padding:1.25rem 1.6rem 1.6rem}
+.ksheet__foot .btn{display:flex;align-items:center;justify-content:center;gap:.7rem;
+  width:100%;box-sizing:border-box;padding:.95rem 1.5rem;font-size:clamp(.97rem,4.1vw,1.05rem)}
+.ksheet__foot .bn__arrow{width:16px;height:16px}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .bn__go{opacity:1;transform:none}
+}
+
+</style>
+
+</head>
+
+<body>
+<div class="page">
+__NAV_HTML__
+
+<main>
+
+<!-- Two contour fields, each inlined once and pulled in with <use> wherever
+     it is needed. Eight separate copies would add about 400KB to this page for
+     no visual difference. Two fields rather than one because topo-dense.svg is
+     drawn for a tall section: in a wide short band you see only its crowded
+     middle, which reads as smears instead of contours. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute" focusable="false">
+  <defs>
+    <g id="topoBand" fill="none" stroke-linejoin="round" stroke-linecap="round">__TOPO_BAND_DEFS__</g>
+    <g id="topoCard" fill="none" stroke-linejoin="round" stroke-linecap="round">__TOPO_CARD_DEFS__</g>
+  </defs>
+</svg>
+
+<section class="sec sec--first kit-hero has-topo">
+  <div class="topo topo--dense" aria-hidden="true"><svg viewBox="0 0 1440 460" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoBand"/></svg></div>
+  <div class="wrap">
+    <div class="kit-hero__in">
+      <div class="kit-hero__text">
+        <h1>The Kit</h1>
+        <p class="kit-hero__sub">Seven things we build for Singapore businesses: websites, internal tools, AI workflows, automation, SEO and AEO, marketing and cloud. Most jobs use three or four at once. That is the argument for one tech partner rather than three suppliers.</p>
+      </div>
+      <a class="kit-hero__cue" href="#kit-websites"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v15"/><path d="M6 13l6 6 6-6"/></svg><span>Scroll down to explore</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-topic" id="kit-websites">
+  <div class="wrap">
+    <div class="kit-topic__row">
+
+      <a class="bn" href="#kit-websites" aria-label="Explore Websites">
+        <span class="bn__topo" aria-hidden="true"><svg viewBox="0 0 560 473" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoCard"/></svg></span>
+        <span class="bn__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2.75" y="4.25" width="18.5" height="15.5"/><path d="M2.75 8.75h18.5"/><path d="M5.5 6.5h2.2"/></svg></span>
+        <span class="bn__words">
+          <h2 class="bn__name">Websites</h2>
+          <span class="bn__tag">Design. Build. Maintain.</span>
+        </span>
+        <span class="bn__go">Explore Websites<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>
+        <span class="bn__tap">Tap to<br>explore</span>
+      </a>
+
+      <div class="kit-topic__body">
+        <p class="kit-topic__desc">CairnCo designs, builds and maintains websites for small businesses in Singapore. Most agencies hand over a folder of files and disappear, so the site goes live and then quietly stops working: the plugin breaks, the rankings drift, nobody owns it. We stay on for the maintenance, and the domain and hosting stay registered in your name. Every site is hand built, in English and Chinese, so there is no theme to break and no licence to renew.</p>
+        <ul class="kit-tasks">
+      <li>Web design and development</li>
+      <li>Website maintenance and support</li>
+      <li>Restaurant ordering systems</li>
+      <li>English and Chinese websites</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-topic kit-topic--right" id="kit-internal-tools">
+  <div class="wrap">
+    <div class="kit-topic__row">
+
+      <a class="bn" href="#kit-internal-tools" aria-label="Explore Internal Tools">
+        <span class="bn__topo" aria-hidden="true"><svg viewBox="340 0 560 473" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoCard"/></svg></span>
+        <span class="bn__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2.75" y="4.25" width="18.5" height="15.5"/><path d="M2.75 9.5h18.5M9.2 9.5v10.25M15 9.5v10.25"/></svg></span>
+        <span class="bn__words">
+          <h2 class="bn__name">Internal Tools</h2>
+          <span class="bn__tag">Clients. Staff. Jobs.</span>
+        </span>
+        <span class="bn__go">Explore Internal Tools<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>
+        <span class="bn__tap">Tap to<br>explore</span>
+      </a>
+
+      <div class="kit-topic__body">
+        <p class="kit-topic__desc">Internal tools are the systems a business runs on inside: customer records, job and work order tracking, stock. Most Singapore SMEs run those on a spreadsheet four people edit at once, and a process someone holds in their head. It works until the team grows, the file gets copied, or that person goes on leave. We build the tool that replaces it, with a login, one version of the truth, and a record of who changed what.</p>
+        <ul class="kit-tasks">
+      <li>Custom software development</li>
+      <li>CRM and customer records</li>
+      <li>Job and work order tracking</li>
+      <li>Inventory and stock management</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-topic" id="kit-ai-workflows">
+  <div class="wrap">
+    <div class="kit-topic__row">
+
+      <a class="bn" href="#kit-ai-workflows" aria-label="Explore AI Workflows">
+        <span class="bn__topo" aria-hidden="true"><svg viewBox="0 287 560 473" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoCard"/></svg></span>
+        <span class="bn__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="4.8" cy="12" r="2.1"/><circle cx="19.2" cy="5.8" r="2.1"/><circle cx="19.2" cy="18.2" r="2.1"/><path d="M6.9 12h4.3l5.9-5.4M11.2 12l5.9 5.4"/></svg></span>
+        <span class="bn__words">
+          <h2 class="bn__name">AI Workflows</h2>
+          <span class="bn__tag">Read. Sort. Draft.</span>
+        </span>
+        <span class="bn__go">Explore AI Workflows<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>
+        <span class="bn__tap">Tap to<br>explore</span>
+      </a>
+
+      <div class="kit-topic__body">
+        <p class="kit-topic__desc">AI workflow automation earns its place where the work is reading, sorting and drafting. It does not earn it where the work is deciding. So we build the reading and the drafting and leave a person holding the decision, because a system that guesses without a check is worse than doing it by hand. Everything runs against your own documents and records, not the open internet.</p>
+        <ul class="kit-tasks">
+      <li>AI workflow automation</li>
+      <li>Customer enquiry chatbot</li>
+      <li>AI assistant over your documents</li>
+      <li>Invoice and receipt data capture</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-topic kit-topic--right" id="kit-automation">
+  <div class="wrap">
+    <div class="kit-topic__row">
+
+      <a class="bn" href="#kit-automation" aria-label="Explore Automation">
+        <span class="bn__topo" aria-hidden="true"><svg viewBox="340 287 560 473" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoCard"/></svg></span>
+        <span class="bn__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.9-5.2"/><path d="M13.7 6.8h3.7V3.1"/><path d="M19.5 12a7.5 7.5 0 0 1-12.9 5.2"/><path d="M10.3 17.2H6.6v3.7"/></svg></span>
+        <span class="bn__words">
+          <h2 class="bn__name">Automation</h2>
+          <span class="bn__tag">Connect. Trigger. Done.</span>
+        </span>
+        <span class="bn__go">Explore Automation<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>
+        <span class="bn__tap">Tap to<br>explore</span>
+      </a>
+
+      <div class="kit-topic__body">
+        <p class="kit-topic__desc">The manual processes worth automating first are the boring ones. Retyping between two systems. The report someone assembles every Tuesday. The quote that becomes an invoice by hand. Each one is small enough to tolerate, and together they are a day a week, which is why business process automation pays back faster in a small company than a large one. E-invoicing is the one with a deadline attached: InvoiceNow is Singapore's Peppol network, and GST registered businesses are being phased onto it.</p>
+        <ul class="kit-tasks">
+      <li>InvoiceNow and Peppol setup</li>
+      <li>Business process automation</li>
+      <li>WhatsApp enquiries into your CRM</li>
+      <li>Xero and QuickBooks integration</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-topic" id="kit-seo-and-aeo">
+  <div class="wrap">
+    <div class="kit-topic__row">
+
+      <a class="bn" href="#kit-seo-and-aeo" aria-label="Explore SEO and AEO">
+        <span class="bn__topo" aria-hidden="true"><svg viewBox="170 143 560 473" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoCard"/></svg></span>
+        <span class="bn__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="10.4" cy="10.4" r="6.15"/><path d="M14.9 14.9l6 6"/></svg></span>
+        <span class="bn__words">
+          <h2 class="bn__name">SEO &amp; AEO</h2>
+          <span class="bn__tag">Ranked. Quoted. Found.</span>
+        </span>
+        <span class="bn__go">Explore SEO and AEO<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>
+        <span class="bn__tap">Tap to<br>explore</span>
+      </a>
+
+      <div class="kit-topic__body">
+        <p class="kit-topic__desc">Being found in Singapore now happens in two places: search results, and the answers ChatGPT, Gemini and Google's AI Overviews give when somebody asks instead of searching. That second one is answer engine optimisation, also called AEO or GEO. In September 2026 we ran 44 searches a Singapore buyer might type and Google returned an AI Overview on 40 of them. Both halves are won the same way: a site a machine can read, and content worth quoting.</p>
+        <ul class="kit-tasks">
+      <li>Answer engine optimisation (AEO)</li>
+      <li>Getting named in AI answers</li>
+      <li>Google Business Profile setup</li>
+      <li>Technical SEO audit and fixes</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-topic kit-topic--right" id="kit-marketing">
+  <div class="wrap">
+    <div class="kit-topic__row">
+
+      <a class="bn" href="#kit-marketing" aria-label="Explore Marketing">
+        <span class="bn__topo" aria-hidden="true"><svg viewBox="300 60 560 473" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoCard"/></svg></span>
+        <span class="bn__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3.5 9.6v4.8h3.4l8.3 4.3V5.3L7 9.6H3.5z"/><path d="M18.4 9.2a4.2 4.2 0 0 1 0 5.6"/></svg></span>
+        <span class="bn__words">
+          <h2 class="bn__name">Marketing</h2>
+          <span class="bn__tag">Reach. Convert. Repeat.</span>
+        </span>
+        <span class="bn__go">Explore Marketing<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>
+        <span class="bn__tap">Tap to<br>explore</span>
+      </a>
+
+      <div class="kit-topic__body">
+        <p class="kit-topic__desc">A site nobody visits is a brochure in a drawer. This is the work that brings people to it and turns arrivals into enquiries. It sits on top of everything else here, because traffic pointed at a slow site or an unanswered form is money spent annoying people.</p>
+        <ul class="kit-tasks">
+      <li>Google Ads setup and management</li>
+      <li>Landing pages built to convert</li>
+      <li>Conversion tracking and GA4</li>
+      <li>Lead capture and follow-up</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-topic" id="kit-cloud">
+  <div class="wrap">
+    <div class="kit-topic__row">
+
+      <a class="bn" href="#kit-cloud" aria-label="Explore Cloud">
+        <span class="bn__topo" aria-hidden="true"><svg viewBox="60 230 560 473" preserveAspectRatio="xMidYMid slice" fill="none"><use href="#topoCard"/></svg></span>
+        <span class="bn__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M7.2 18.3h9.9a4.05 4.05 0 0 0 .6-8.05 5.55 5.55 0 0 0-10.9.7A3.7 3.7 0 0 0 7.2 18.3z"/><path d="M9.8 13.2l2.3 2.3 4-4.2"/></svg></span>
+        <span class="bn__words">
+          <h2 class="bn__name">Cloud</h2>
+          <span class="bn__tag">Host. Secure. Own it.</span>
+        </span>
+        <span class="bn__go">Explore Cloud<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>
+        <span class="bn__tap">Tap to<br>explore</span>
+      </a>
+
+      <div class="kit-topic__body">
+        <p class="kit-topic__desc">Cloud is the part nobody thinks about until it breaks: where the site lives, where the backups are, who can get in, and what happens when the person who set it up leaves. We run it on Cloudflare, we set up company email and the records that keep it out of spam, and the domain, the hosting account and the DNS stay registered in your name, not ours. That is what website ownership actually means, and it is the difference between changing supplier and starting again.</p>
+        <ul class="kit-tasks">
+      <li>Business email on your domain</li>
+      <li>Email security: SPF, DKIM, DMARC</li>
+      <li>Managed hosting and domains</li>
+      <li>Migration off your old provider</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec kit-end">
+  <div class="wrap">
+    <h2>Not sure which of these you need?</h2>
+    <p>That is what the first call is for. Thirty minutes, no obligation, and you leave with a written picture of what is actually wrong, whether or not you hire us.</p>
+    <div class="kit-end__go">
+      <a class="btn" href="contact.html">Talk to us</a>
+      <!--EN-ONLY--><a class="btn btn--ghost" href="faq.html">Read the FAQ</a><!--/EN-ONLY-->
+    </div>
+  </div>
+</section>
+
+</main>
+
+<dialog class="ksheet" id="kitSheet" aria-labelledby="kitSheetName">
+  <div class="ksheet__panel">
+    <div class="ksheet__head">
+      <span class="ksheet__mark" id="kitSheetMark" aria-hidden="true"></span>
+      <div class="ksheet__title">
+        <h2 id="kitSheetName"></h2>
+        <p class="ksheet__tag" id="kitSheetTag"></p>
+      </div>
+      <button type="button" class="ksheet__x" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="ksheet__body" id="kitSheetBody"></div>
+    <div class="ksheet__foot">
+      <a class="btn" href="contact.html">Talk to us about this<svg class="bn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </div>
+</dialog>
+
+__FOOT_HTML__
+</div>
+
+<script>
+__NAV_JS__
+
+/* The Kit: on a phone a banner opens its content in a window instead of
+   stacking seven descriptions down the page. The content stays in the markup
+   either way, so a crawler and a reader with JavaScript off get every word.
+   The class below is what hides it, and only this script can add it. */
+(function(){
+  var sheet = document.getElementById('kitSheet');
+  if(!sheet || typeof sheet.showModal !== 'function') return;
+
+  var EASE = 'cubic-bezier(.23,1,.32,1)';
+  var phone = window.matchMedia('(max-width:820px)');
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var nameEl = document.getElementById('kitSheetName');
+  var tagEl  = document.getElementById('kitSheetTag');
+  var markEl = document.getElementById('kitSheetMark');
+  var bodyEl = document.getElementById('kitSheetBody');
+  var panel  = sheet.querySelector('.ksheet__panel');
+  var from   = null;      /* the banner the window grew out of */
+  var busy   = false;
+
+  function apply(){ document.documentElement.classList.toggle('kit-js', phone.matches); }
+  apply();
+  if(phone.addEventListener) phone.addEventListener('change', apply);
+  else if(phone.addListener) phone.addListener(apply);
+
+  /* The window is centred, the banner is wherever it was tapped. This is the
+     transform that puts the window's centre on the banner's centre, shrunk.
+     Scale stays near 1 on purpose: scaling type up from the banner's real
+     height would blur every word on the way. 0.88 reads as growing out of the
+     banner without the text ever going soft. */
+  function outOf(b){
+    if(!b) return 'scale(.88)';
+    var dx = (b.left + b.width / 2) - window.innerWidth / 2;
+    var dy = (b.top + b.height / 2) - window.innerHeight / 2;
+    return 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px) scale(.88)';
+  }
+
+  var lockedAt = 0;
+  function lock(){
+    lockedAt = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.style.top = (-lockedAt) + 'px';
+    document.documentElement.classList.add('kit-locked');
+  }
+  function unlock(){
+    document.documentElement.classList.remove('kit-locked');
+    document.body.style.top = '';
+    window.scrollTo(0, lockedAt);
+  }
+
+  function clear(){
+    if(panel.getAnimations) panel.getAnimations().forEach(function(a){ a.cancel(); });
+  }
+
+  function open(bn){
+    if(busy) return;
+    var row = bn.parentNode;
+    var body = row.querySelector('.kit-topic__body');
+    if(!body) return;
+    nameEl.textContent = bn.querySelector('.bn__name').textContent;
+    tagEl.textContent  = bn.querySelector('.bn__tag').textContent;
+    markEl.innerHTML   = bn.querySelector('.bn__mark').innerHTML;
+    bodyEl.innerHTML   = body.innerHTML;
+    bodyEl.scrollTop = 0;
+    from = bn.getBoundingClientRect();
+    lock();          /* holds the page exactly where it is, so `from` stays true */
+    sheet.showModal();
+    clear();
+    if(still.matches || !panel.animate) return;
+    panel.animate(
+      [{ transform: outOf(from), opacity: 0 }, { transform: 'none', opacity: 1 }],
+      { duration: 440, easing: EASE, fill: 'both' });
+  }
+
+  /* Closing runs the same move backwards, so the window returns to the banner
+     it came from. Native close() is instant, so it waits for the animation.
+     The timeout is the belt: if the animation never fires, it still closes. */
+  function shut(){
+    if(busy) return;
+    var fired = false;
+    function done(){
+      if(fired) return;
+      fired = true;
+      busy = false;
+      unlock();
+      sheet.close();
+      clear();
+    }
+    if(still.matches || !panel.animate){ done(); return; }
+    busy = true;
+    clear();
+    var a = panel.animate(
+      [{ transform: 'none', opacity: 1 }, { transform: outOf(from), opacity: 0 }],
+      { duration: 300, easing: 'cubic-bezier(.4,0,1,1)', fill: 'both' });
+    a.onfinish = done;
+    setTimeout(done, 520);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.bn'), function(bn){
+    bn.addEventListener('click', function(e){
+      if(!phone.matches) return;          /* on a wide screen the content is already beside it */
+      e.preventDefault();
+      open(bn);
+    });
+  });
+
+  sheet.querySelector('.ksheet__x').addEventListener('click', shut);
+  /* the strip of backdrop around the window is a tap target: a tap there lands
+     on the dialog itself, never on the panel */
+  sheet.addEventListener('click', function(e){ if(e.target === sheet) shut(); });
+  /* Escape would close instantly, so run it through the same exit */
+  sheet.addEventListener('cancel', function(e){ e.preventDefault(); shut(); });
+})();
+
+</script>
+</body>
+</html>

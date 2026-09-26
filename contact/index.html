@@ -131,6 +131,14 @@ a{color:inherit}
 .btn--ghost{background:var(--paper);color:var(--teal-deep);
   border:1px solid rgba(61,90,80,.38)}
 .btn--ghost:hover{background:var(--rust);border-color:var(--rust);color:var(--paper-raised)}
+/* Touch browsers paint their own highlight on tap, and Chrome's default is
+   rgba(51,181,229,.4), a blue that belongs to no part of this palette. It is
+   not a DevTools artefact: a real phone shows it too. Suppressing it is only
+   safe because every clickable here already has a pressed state of its own
+   (.btn and .bn both scale on :active), so a tap still answers back. */
+a,button,summary{-webkit-tap-highlight-color:transparent}
+/* Never remove this one. It is the keyboard user's only way of knowing where
+   they are, and :focus-visible already keeps it off mouse and touch. */
 a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offset:3px;border-radius:4px}
 
 /* ---------- phone proportions ----------
