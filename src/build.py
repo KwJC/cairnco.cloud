@@ -67,7 +67,11 @@ FOUNDED = '2026-09-10'          # ACRA registration
 SAME_AS = [
     'https://www.tiktok.com/@cairnco_holdings',
     'https://www.instagram.com/cairnco.holdings',
-    # LinkedIn and GitHub go here when the accounts exist
+    # This is the machine-readable claim that the LinkedIn page is the same
+    # organisation as this site. Without it nothing joins the two up, which is
+    # part of why the LinkedIn page is not in Google's index.
+    'https://www.linkedin.com/company/cairnco-holdings-llp/',
+    # GitHub goes here when the account exists
 ]
 SERVICES = ['Websites', 'SEO & AEO', 'Marketing', 'Internal Tools',
             'AI Workflows', 'Automation', 'Cloud']
@@ -842,17 +846,30 @@ def localize(text, lang):
 
 
 def rewrite_links(text, lang):
-    repl = {
-        'href="index.html"': 'href="%s/"' % LANGS[lang]['prefix'],
-        'href="contact.html"': 'href="%s/contact/"' % LANGS[lang]['prefix'],
-        'href="landmarks.html"': 'href="%s/landmarks/"' % LANGS[lang]['prefix'],
-        'href="kit.html"': 'href="%s/kit/"' % LANGS[lang]['prefix'],
-        'href="newsroom.html"': 'href="%s/newsroom/"' % LANGS[lang]['prefix'],
-        'href="faq.html"': 'href="%s/faq/"' % LANGS[lang]['prefix'],
+    """Turn a template's page names into the published paths for one language.
+
+    A link may carry a fragment, for example kit.html#kit-websites. The fragment
+    is matched separately and carried across, because an exact string replace on
+    'href="kit.html"' cannot see past the quote and would leave the .html name
+    in place, which 404s on the live site. Anything not named here is left
+    exactly as written.
+    """
+    pages = {
+        'index.html': '%s/' % LANGS[lang]['prefix'],
+        'contact.html': '%s/contact/' % LANGS[lang]['prefix'],
+        'landmarks.html': '%s/landmarks/' % LANGS[lang]['prefix'],
+        'kit.html': '%s/kit/' % LANGS[lang]['prefix'],
+        'newsroom.html': '%s/newsroom/' % LANGS[lang]['prefix'],
+        'faq.html': '%s/faq/' % LANGS[lang]['prefix'],
     }
-    for a, b in repl.items():
-        text = text.replace(a, b)
-    return text
+
+    def swap(m):
+        target = pages.get(m.group(1))
+        if target is None:
+            return m.group(0)
+        return 'href="%s%s"' % (target, m.group(2) or '')
+
+    return re.sub(r'href="([a-z]+\.html)(#[A-Za-z0-9_-]+)?"', swap, text)
 
 
 def add_language_links(text, lang):
@@ -1137,7 +1154,13 @@ for _f in PAGE_META:
 ROBOTS = '''User-agent: *
 Allow: /
 
-# Answer engines. Named so the choice is explicit rather than accidental.
+# Answer engines, named so the choice is explicit rather than accidental.
+#
+# Two different jobs are listed here. GPTBot and ClaudeBot crawl to train
+# models. OAI-SearchBot, Claude-SearchBot, Claude-User, PerplexityBot and
+# Perplexity-User fetch a page to build an answer someone is reading right now.
+# The second group is the traffic this site is written for, so leaving any of
+# them out is the one mistake worth avoiding on this file.
 User-agent: GPTBot
 Allow: /
 
@@ -1147,9 +1170,21 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
 User-agent: PerplexityBot
 Allow: /
 
+User-agent: Perplexity-User
+Allow: /
+
+# Gemini training and grounding. Listed apart from the group above because
+# Google's own documentation says it does not affect inclusion in Google
+# Search, so grouping it with the answer engines misstates what it controls.
 User-agent: Google-Extended
 Allow: /
 

@@ -1,7 +1,13 @@
 User-agent: *
 Allow: /
 
-# Answer engines. Named so the choice is explicit rather than accidental.
+# Answer engines, named so the choice is explicit rather than accidental.
+#
+# Two different jobs are listed here. GPTBot and ClaudeBot crawl to train
+# models. OAI-SearchBot, Claude-SearchBot, Claude-User, PerplexityBot and
+# Perplexity-User fetch a page to build an answer someone is reading right now.
+# The second group is the traffic this site is written for, so leaving any of
+# them out is the one mistake worth avoiding on this file.
 User-agent: GPTBot
 Allow: /
 
@@ -11,9 +17,21 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
 User-agent: PerplexityBot
 Allow: /
 
+User-agent: Perplexity-User
+Allow: /
+
+# Gemini training and grounding. Listed apart from the group above because
+# Google's own documentation says it does not affect inclusion in Google
+# Search, so grouping it with the answer engines misstates what it controls.
 User-agent: Google-Extended
 Allow: /
 
