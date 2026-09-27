@@ -20,6 +20,7 @@ it up on the next build.
 
 Run it from anywhere:  python build.py
 """
+import ast
 import base64
 import pathlib
 import re
@@ -139,12 +140,12 @@ FAQ = [
     ('What is AEO, and how is it different from SEO?',
      'SEO is being found on a search results page. AEO, answer engine optimisation, '
      'is being the source an AI assistant quotes when someone asks it a question. '
-     'Increasingly people ask ChatGPT or Google\u2019s AI summary instead of scrolling '
+     'Increasingly people ask ChatGPT or Google\'s AI summary instead of scrolling '
      'results, and those answers cite a handful of sources. AEO is the work of being '
      'one of them.'),
     ('Can CairnCo take over a website or system somebody else built?',
      'Usually yes. We will look at what exists before quoting, because inheriting '
-     'someone else\u2019s code is sometimes cheaper to rebuild than to repair, and you '
+     'someone else\'s code is sometimes cheaper to rebuild than to repair, and you '
      'deserve to know which before you pay. We will tell you honestly which one it '
      'is, including when the honest answer is to leave it alone.'),
     ('What happens after the site or system launches?',
@@ -160,6 +161,36 @@ FAQ = [
     ('How quickly does CairnCo reply?',
      'Within one working day, to hello@cairnco.cloud or the form on the contact '
      'page. Both partners see it.'),
+]
+
+
+# The same ten questions in Chinese, in the same order, for /zh/faq/. The page
+# text is translated through ZH_TEXT like every other page, but the FAQPage
+# schema is built in the <head>, and localize() only ever touches the body. So
+# without this list the Chinese page would carry English structured data, which
+# on the one page whose whole job is being quoted by an answer engine is the
+# worst possible half-job. The guard further down keeps the two in step.
+FAQ_ZH = [
+    ('初次沟通会谈些什么？',
+     '三十分钟，没有义务，也没有推销。你讲哪里慢、哪里坏、哪些还在手工做，我们一直问到搞清楚为止。无论最后是否合作，你都会带走一份关于问题究竟出在哪里的书面说明。如果这件事根本不该做，我们会直说。'),
+    ('CairnCo 到底做什么？',
+     '我们是没有技术部门的公司的技术部门。范围包括网站建设、内部工具、AI 工作流、自动化、云服务，以及在搜索和 AI 助手里被找到。一个团队负责整条链路，而不是一家网页公司、一个懂电脑的朋友、再加一个各做各的营销自由职业者。'),
+    ('CairnCo 是按月收费，还是一次性付清？',
+     '两种都有，取决于我们做什么。一次性交付的网站可以是单笔项目费。需要持续运行的系统，或者需要长期维护的搜索工作，是建设费加月费。在你决定之前，我们会先说清楚属于哪一种。我们不抽取你销售额的分成。'),
+    ('CairnCo 只做网站吗？',
+     '不是。网站是最显眼的部分，但大多数工作并不好看：四个人同时编辑的表格、被人从一个系统手工抄到另一个系统的订单、要花一个上午才能拼出来的报表。只要是重复的、手工做的，通常就可以自动化。'),
+    ('CairnCo 做出来的东西归谁？',
+     '你的内容、你的数据、你的客户资料都是你的，如果日后分开，它们跟你走。为你定制开发的部分，所有权在合约里写明，不用日后再猜。如果你使用我们现有的平台，你在订阅期内持有使用授权，而不是拥有底层系统。'),
+    ('什么是 AEO？它和 SEO 有什么不同？',
+     'SEO 是在搜索结果页里被找到。AEO，也就是答案引擎优化，是当有人向 AI 助手提问时，成为它引用的那个来源。越来越多人直接问 ChatGPT 或者看 Google 的 AI 摘要，而不是往下翻结果，而那些答案只会引用少数几个来源。AEO 就是成为其中之一的工作。'),
+    ('CairnCo 能接手别人做的网站或系统吗？',
+     '通常可以。报价之前我们会先看现有的东西，因为接手别人的代码有时候重做比修复更便宜，你有权在付钱之前知道是哪一种。我们会如实告诉你，包括当最诚实的答案是先别动它的时候。'),
+    ('网站或系统上线之后呢？',
+     '这是最多人吃亏的地方。交付之后就没人管的项目，一年之内就会开始出问题：搜索排名下滑、依赖坏掉，没人负责的东西最后变成没人修的东西。我们会继续维护，而且在你签字之前，合约里就写明维护包含什么。'),
+    ('CairnCo 在哪里？会接新加坡以外的项目吗？',
+     '我们在新加坡，大部分客户也是新加坡企业，这对 PayNow、PDPA 和本地搜索这些事情很重要。我们远程工作，也可以接新加坡以外的项目，但如果本地经验正是你要买的东西，我们会直说。'),
+    ('CairnCo 多久回复？',
+     '一个工作日内，发到 hello@cairnco.cloud 或者联系页上的表单。两位合伙人都会看到。'),
 ]
 
 PAGE_META = {
@@ -180,15 +211,17 @@ PAGE_META = {
         slug='faq',
         priority='0.8',
         index=True,
-        # English only for now. The Chinese answers are a separate job, and a
-        # sitemap or hreflang entry for a page that does not exist is worse than
-        # no entry at all, so the whole page is scoped to one language.
-        langs=('en',),
+        # Both languages now. The Chinese answers exist as real copy in ZH_TEXT
+        # and as real structured data in FAQ_ZH, so the page earns its sitemap
+        # and hreflang entries.
         en=dict(
             title='FAQ | Working with CairnCo in Singapore',
             desc=('Answers about working with CairnCo: discovery calls, how we bill, '
                   'who owns what we build, AEO versus SEO, and what happens after '
-                  'launch.'))),
+                  'launch.')),
+        zh=dict(
+            title='常见问题 | 与 CairnCo 合作',
+            desc='关于与 CairnCo 合作的常见问题：初次沟通、收费方式、成果归属、AEO 与 SEO 的区别，以及网站上线之后会怎样。')),
     'contact.html': dict(
         slug='contact',
         priority='0.8',
@@ -335,13 +368,17 @@ def jsonld_crumb(lang, name, path):
             + '</script>')
 
 
-def jsonld_faq():
+def jsonld_faq(lang):
     import json
+    # An answer engine reading /zh/faq/ must be handed the Chinese questions, not
+    # the English ones. This is the only schema on the site that carries prose.
+    qa = FAQ_ZH if lang == 'zh' else FAQ
     doc = {'@context': 'https://schema.org', '@type': 'FAQPage',
+           'inLanguage': LANGS[lang]['schema'],
            'mainEntity': [
                {'@type': 'Question', 'name': q,
                 'acceptedAnswer': {'@type': 'Answer', 'text': a}}
-               for q, a in FAQ]}
+               for q, a in qa]}
     return ('<script type="application/ld+json">'
             + json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
             + '</script>')
@@ -379,7 +416,7 @@ def head_meta(filename, lang):
     else:
         out.append(jsonld_crumb(lang, m['title'].split(' | ')[0], path))
     if filename == 'faq.html':
-        out.append(jsonld_faq())
+        out.append(jsonld_faq(lang))
     return '\n'.join(out)
 
 
@@ -424,6 +461,12 @@ _C2PA_SVG = re.compile(
 
 def strip_svg(text):
     return _C2PA_SVG.sub('', text)
+
+
+def read_self():
+    """This file's own source text, for the guards that check how the source is
+    written rather than what it evaluates to."""
+    return pathlib.Path(__file__).read_text(encoding='utf-8')
 
 
 def svg_inner(name):
@@ -603,7 +646,6 @@ ZH_TEXT = {
     'One call, and someone finally does.': '一次通话之后，终于有人接手。',
     'No pitch, no obligation. You leave with a written summary either way.': '不推销，无义务。无论是否合作，你都会拿到一份书面总结。',
     'Or email us at ': '也可以发邮件给我们：',
-    'Contact us': '联系我们',
     'Either route reaches both of us. Expect a reply within one working day.': '两种方式都会同时到达我们这里。一个工作日内回复。',
     'Get in touch': '取得联系',
     'Tell us what is broken. We will tell you whether we can fix it, and what it would take.': '告诉我们哪里卡住了。我们会告诉你能否修复，以及需要什么。',
@@ -709,6 +751,45 @@ ZH_TEXT = {
     'Read the FAQ': '查看常见问题',
     'Talk to us': '联系我们',
     'Close': '关闭',
+
+    # ---- FAQ page. Every question and answer, plus the page furniture. The
+    #      guard below refuses to build if any of these keys goes missing,
+    #      because a half-translated FAQ is worse than an English one.
+    #      Longest first is handled by localize(), so overlaps are safe.
+    'What people ask before they hire us.': '客户在合作之前最常问的问题。',
+    'Still not sure it is something we can fix?': '还不确定这是不是我们能解决的问题？',
+    'Describe the symptom. Working out the actual problem is our job, not yours.': '把症状说出来就行。找出真正的问题是我们的工作，不是你的。',
+    'FAQ': '常见问题',
+    'What happens on a discovery call?': '初次沟通会谈些什么？',
+    'What does CairnCo actually do?': 'CairnCo 到底做什么？',
+    'Does CairnCo charge a monthly fee, or is it one payment?': 'CairnCo 是按月收费，还是一次性付清？',
+    'Does CairnCo only build websites?': 'CairnCo 只做网站吗？',
+    'Who owns what CairnCo builds?': 'CairnCo 做出来的东西归谁？',
+    'What is AEO, and how is it different from SEO?': '什么是 AEO？它和 SEO 有什么不同？',
+    'Can CairnCo take over a website or system somebody else built?': 'CairnCo 能接手别人做的网站或系统吗？',
+    'What happens after the site or system launches?': '网站或系统上线之后呢？',
+    'Where is CairnCo based, and does it work with businesses outside Singapore?': 'CairnCo 在哪里？会接新加坡以外的项目吗？',
+    'How quickly does CairnCo reply?': 'CairnCo 多久回复？',
+    'Thirty minutes, no obligation, and no pitch. You describe what is slow, breaking or done by hand, and we ask questions until we understand it. You leave with a written picture of what is actually wrong, whether or not you hire us. If it is not something we should build, we will say so.':
+        '三十分钟，没有义务，也没有推销。你讲哪里慢、哪里坏、哪些还在手工做，我们一直问到搞清楚为止。无论最后是否合作，你都会带走一份关于问题究竟出在哪里的书面说明。如果这件事根本不该做，我们会直说。',
+    'We are the tech department for businesses that do not have one. That covers websites, internal tools, AI workflows, automation, cloud setup, and getting found in search and in AI assistants. One team for the whole stack, rather than a web agency, an IT guy and a marketing freelancer who never speak to each other.':
+        '我们是没有技术部门的公司的技术部门。范围包括网站建设、内部工具、AI 工作流、自动化、云服务，以及在搜索和 AI 助手里被找到。一个团队负责整条链路，而不是一家网页公司、一个懂电脑的朋友、再加一个各做各的营销自由职业者。',
+    'Both, depending on what we build. A one-off site can be a single project fee. A system that keeps running, or search work that needs maintaining, is a build fee plus a monthly amount. We tell you which shape applies before you commit, and we do not take a percentage of your sales.':
+        '两种都有，取决于我们做什么。一次性交付的网站可以是单笔项目费。需要持续运行的系统，或者需要长期维护的搜索工作，是建设费加月费。在你决定之前，我们会先说清楚属于哪一种。我们不抽取你销售额的分成。',
+    'No. Websites are the most visible part, but most of the work is the unglamorous kind: the spreadsheet that four people edit at once, the order form somebody retypes into another system, the report that takes a morning to assemble. If it is repetitive and done by hand, it is probably something we can automate.':
+        '不是。网站是最显眼的部分，但大多数工作并不好看：四个人同时编辑的表格、被人从一个系统手工抄到另一个系统的订单、要花一个上午才能拼出来的报表。只要是重复的、手工做的，通常就可以自动化。',
+    'Your content, your data and your customer information are yours and leave with you if we part ways. For custom work built for you, ownership is set in writing in the engagement, so nobody has to guess later. If you use one of our existing platforms, you hold a licence while you subscribe rather than owning the engine.':
+        '你的内容、你的数据、你的客户资料都是你的，如果日后分开，它们跟你走。为你定制开发的部分，所有权在合约里写明，不用日后再猜。如果你使用我们现有的平台，你在订阅期内持有使用授权，而不是拥有底层系统。',
+    "SEO is being found on a search results page. AEO, answer engine optimisation, is being the source an AI assistant quotes when someone asks it a question. Increasingly people ask ChatGPT or Google's AI summary instead of scrolling results, and those answers cite a handful of sources. AEO is the work of being one of them.":
+        'SEO 是在搜索结果页里被找到。AEO，也就是答案引擎优化，是当有人向 AI 助手提问时，成为它引用的那个来源。越来越多人直接问 ChatGPT 或者看 Google 的 AI 摘要，而不是往下翻结果，而那些答案只会引用少数几个来源。AEO 就是成为其中之一的工作。',
+    "Usually yes. We will look at what exists before quoting, because inheriting someone else's code is sometimes cheaper to rebuild than to repair, and you deserve to know which before you pay. We will tell you honestly which one it is, including when the honest answer is to leave it alone.":
+        '通常可以。报价之前我们会先看现有的东西，因为接手别人的代码有时候重做比修复更便宜，你有权在付钱之前知道是哪一种。我们会如实告诉你，包括当最诚实的答案是先别动它的时候。',
+    'This is the part most people get burned on. A build that ships and is then left alone stops working within a year: search rankings drift, dependencies break, and the thing nobody owns becomes the thing nobody fixes. We stay on for the running, and the engagement says what that covers before you sign it.':
+        '这是最多人吃亏的地方。交付之后就没人管的项目，一年之内就会开始出问题：搜索排名下滑、依赖坏掉，没人负责的东西最后变成没人修的东西。我们会继续维护，而且在你签字之前，合约里就写明维护包含什么。',
+    'We are based in Singapore and most of our work is with Singapore businesses, which matters for things like PayNow, PDPA and local search. We work remotely and can take on work elsewhere, but we will be straight about it when local knowledge is part of what you are buying.':
+        '我们在新加坡，大部分客户也是新加坡企业，这对 PayNow、PDPA 和本地搜索这些事情很重要。我们远程工作，也可以接新加坡以外的项目，但如果本地经验正是你要买的东西，我们会直说。',
+    'Within one working day, to hello@cairnco.cloud or the form on the contact page. Both partners see it.':
+        '一个工作日内，发到 hello@cairnco.cloud 或者联系页上的表单。两位合伙人都会看到。',
 }
 
 
@@ -956,6 +1037,58 @@ if _tpl_qs != _list_qs:
             print('  %2d  page:   %s' % (i + 1, a))
             print('      schema: %s' % b)
     sys.exit('fix faq.template.html or the FAQ list in build.py, then rebuild')
+
+# The answers are written twice as well, and one differing character is enough
+# for the page and its schema to disagree. A straight apostrophe against a curly
+# one sat here unnoticed, because the check above only looked at the questions.
+_tpl_as = re.findall(r'<div class="qa__a"[^>]*>\s*<p>(.*?)</p>', _faq_tpl, re.S)
+_list_as = [a for _, a in FAQ]
+if _tpl_as != _list_as:
+    print('FAQ answers do not match between the page and the schema:')
+    for i in range(max(len(_tpl_as), len(_list_as))):
+        a = _tpl_as[i] if i < len(_tpl_as) else '(missing)'
+        c = _list_as[i] if i < len(_list_as) else '(missing)'
+        if a != c:
+            print('  %2d  page:   %s' % (i + 1, a[:90]))
+            print('      schema: %s' % c[:90])
+    sys.exit('fix faq.template.html or the FAQ list in build.py, then rebuild')
+
+# The Chinese page is a blind substring replace over the English one, so a
+# missing key does not error, it silently ships an English sentence on a Chinese
+# page. The FAQ is the page where that would hurt most, so every question and
+# answer must have a translation before the build is allowed to run.
+if len(FAQ_ZH) != len(FAQ):
+    sys.exit('FAQ_ZH has %d entries, FAQ has %d' % (len(FAQ_ZH), len(FAQ)))
+# A duplicate key in the ZH_TEXT literal is invisible: Python keeps the last one
+# and throws the first away without a word. That is how a second entry for
+# 'Book a discovery call' silently rewrote the home page hero button while the
+# FAQ page was being added. The dict cannot be checked after the fact, because by
+# then the duplicate is already gone, so read this file's own source instead.
+_zh_src = re.search(r'^ZH_TEXT = \{.*?^\}', read_self(), re.S | re.M)
+_zh_dict = ast.parse(_zh_src.group(0)).body[0].value
+_zh_pairs = [(ast.literal_eval(k), ast.literal_eval(v))
+             for k, v in zip(_zh_dict.keys, _zh_dict.values)]
+_zh_keys = [k for k, _ in _zh_pairs]
+_dupes = sorted({k for k in _zh_keys if _zh_keys.count(k) > 1})
+if _dupes:
+    print('ZH_TEXT has duplicate keys. Python silently keeps the last of each,')
+    print('so one of the two translations below is being thrown away:')
+    for k in _dupes:
+        vals = sorted({v for kk, v in _zh_pairs if kk == k})
+        if len(vals) == 1:
+            print('  %s  (both say the same thing, so just redundant)' % k[:80])
+        else:
+            print('  %s' % k[:80])
+            for v in vals:
+                print('      -> %s' % v[:70])
+    sys.exit('keep one entry per key, then rebuild')
+
+_untranslated = [s for q, a in FAQ for s in (q, a) if s not in ZH_TEXT]
+if _untranslated:
+    print('These FAQ strings have no ZH_TEXT entry, so /zh/faq/ would show English:')
+    for s in _untranslated:
+        print('  %s' % s[:90])
+    sys.exit('add them to ZH_TEXT, then rebuild')
 
 pages = [
     ('index.html', home, {}),
