@@ -923,22 +923,6 @@ a+a{background:transparent;color:#2A3F38;border:1px solid rgba(61,90,80,.38)}
 ''' % (_esc(LANGS['en']['root_title']), _esc(LANGS['en']['root_desc']), SITE, alts)
 
 
-def redirect_page(target, title='Redirecting | CairnCo'):
-    return '''<!DOCTYPE html>
-<html lang="en-SG">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>%s</title>
-<meta name="robots" content="noindex,follow">
-<link rel="canonical" href="%s%s">
-<meta http-equiv="refresh" content="0; url=%s">
-<script>location.replace('%s');</script>
-</head>
-<body><p><a href="%s">Continue to CairnCo</a></p></body>
-</html>
-''' % (_esc(title), SITE, target, target, target, target)
-
 
 # Wrangler serves this directory and nothing else, which is what keeps src/
 # and the docs off the public site. The same pages are also written to the
@@ -1129,22 +1113,38 @@ for lang in LANGS:
         html = localize(fill(template, data), lang)
         finish(ROOT / page_out(lang, filename), html)
 
-# Redirects, not content. Two generations of old address are kept alive:
-# the original flat .html files, and the /en/ prefix that briefly held the
-# English pages. Both are noindex so they never compete with the real page.
-legacy = {
-    'contact.html': '/contact/',
-    'landmarks.html': '/landmarks/',
-    'kit.html': '/kit/',
-    'newsroom.html': '/newsroom/',
-}
-for filename, target in legacy.items():
-    finish(ROOT / filename, redirect_page(target))
+# Redirects, not content. Two generations of old address are kept alive: the
+# original flat .html files, and the /en/ prefix that briefly held the English
+# pages.
+#
+# These used to be real HTML pages carrying a meta refresh and a
+# location.replace(). A browser follows both. A crawler that runs no JavaScript
+# often follows neither, so it stopped at forty words of "Continue to CairnCo".
+#
+# Worse, they collided. Cloudflare serves an asset named kit.html at the path
+# /kit, and the real page at kit/index.html is served at /kit/. Two files, one
+# address, and the 446-byte stub won: fetching cairnco.cloud/kit returned the
+# stub instead of The Kit's 800 words. Measured against the live site on
+# 28 Sep 2026, not guessed. The same collision existed on contact, landmarks
+# and newsroom. FAQ never had a stub, which is exactly why /faq always worked.
+#
+# Cloudflare Workers reads _redirects from the assets directory and answers
+# with a real 301 before it looks for an asset, so there is no file left to
+# collide and every crawler follows a 301. First match wins, so the bare /en/
+# line has to come before the wildcard.
+REDIRECTS = """# The original flat addresses.
+/contact.html    /contact/    301
+/landmarks.html  /landmarks/  301
+/kit.html        /kit/        301
+/newsroom.html   /newsroom/   301
 
-for _f in PAGE_META:
-    _slug = PAGE_META[_f]['slug']
-    _to = '/' + (_slug + '/' if _slug else '')
-    finish(ROOT / 'en' / (_slug or '') / 'index.html', redirect_page(_to))
+# The /en/ prefix that briefly held the English pages.
+/en/             /            301
+/en/*            /:splat      301
+"""
+for _d in (ROOT, DIST):
+    if _d is not None:
+        (_d / '_redirects').write_text(REDIRECTS, encoding='utf-8')
 
 # ---- robots.txt ----------------------------------------------------------
 # No robots.txt at all already allows every crawler, so spelling that out
@@ -1152,6 +1152,14 @@ for _f in PAGE_META:
 # visible: flip any Allow to Disallow to shut one out. Being readable by them
 # is the point of AEO, so they are allowed.
 ROBOTS = '''User-agent: *
+# Content Signals, the machine-readable version of the three permissions a site
+# can grant. Saying yes to all three is the whole point here: this site wants to
+# be trained on, searched, and quoted in answers. An absent signal means "no
+# preference stated", which some crawlers read as a refusal, so it is stated.
+#   ai-train  a model may learn from this content
+#   search    it may be indexed and shown in search results
+#   ai-input  it may be fetched and quoted in a live AI answer
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /
 
 # Answer engines, named so the choice is explicit rather than accidental.

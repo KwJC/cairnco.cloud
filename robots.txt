@@ -1,4 +1,12 @@
 User-agent: *
+# Content Signals, the machine-readable version of the three permissions a site
+# can grant. Saying yes to all three is the whole point here: this site wants to
+# be trained on, searched, and quoted in answers. An absent signal means "no
+# preference stated", which some crawlers read as a refusal, so it is stated.
+#   ai-train  a model may learn from this content
+#   search    it may be indexed and shown in search results
+#   ai-input  it may be fetched and quoted in a live AI answer
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /
 
 # Answer engines, named so the choice is explicit rather than accidental.
