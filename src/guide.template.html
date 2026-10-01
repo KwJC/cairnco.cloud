@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+__HEAD__
+__META__
+
+<style>
+__SHELL_CSS__
+
+/* ---------- a guide article ----------
+   One template for every article, so a restyle is a single edit here.
+   The type scale below is deliberately six steps and no more: the home page
+   drifted to thirty-one one-off sizes and this page is not going to repeat it. */
+.guide{position:relative;padding-block:var(--s5)}
+.guide::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(61,90,80,.26) 12%,rgba(61,90,80,.26) 88%,transparent)}
+
+.guide__head{max-width:30ch}
+.guide__head h1{font-size:clamp(2.1rem,4.4vw,3.05rem);line-height:1.1;letter-spacing:-.032em}
+.guide__stand{margin-top:var(--s3);font-family:var(--display);font-weight:400;
+  font-size:clamp(1.12rem,2.1vw,1.42rem);line-height:1.5;color:var(--teal);max-width:46ch}
+.guide__meta{margin-top:var(--s3);font-family:var(--mono);font-size:.74rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  display:flex;gap:1.1rem;flex-wrap:wrap;align-items:center}
+.guide__meta span{display:inline-flex;align-items:center;gap:.55rem}
+.guide__meta span::before{content:"";width:5px;height:5px;border-radius:50%;
+  background:var(--rust);flex:none}
+
+/* The reading column. 68ch keeps a long article inside a comfortable measure
+   at every width; without it the body runs the full 1080px content column. */
+.guide__body{margin-top:var(--s5);max-width:68ch}
+.guide__body > *:first-child{margin-top:0}
+.guide__body h2{margin-top:var(--s5);font-size:clamp(1.42rem,2.5vw,1.92rem);
+  line-height:1.2;letter-spacing:-.022em;color:var(--ink)}
+.guide__body h3{margin-top:var(--s4);font-family:var(--display);font-weight:500;
+  font-size:1.18rem;line-height:1.35;color:var(--ink)}
+.guide__body p{margin-top:var(--s2);font-size:1.055rem;line-height:1.72;color:var(--body)}
+.guide__body ul,.guide__body ol{margin-top:var(--s2);padding-left:1.35rem}
+.guide__body li{margin-top:.55rem;font-size:1.055rem;line-height:1.66;color:var(--body)}
+.guide__body li::marker{color:var(--teal)}
+.guide__body strong{font-weight:500;color:var(--ink)}
+.guide__body blockquote{margin:var(--s4) 0 0;padding-left:var(--s3);
+  border-left:2px solid var(--rust);font-family:var(--display);
+  font-size:1.16rem;line-height:1.5;color:var(--teal-deep)}
+.guide__body a{color:var(--teal-deep);text-decoration:underline;
+  text-underline-offset:.18em;text-decoration-thickness:1px;
+  border-radius:4px;padding:.06em .2em;margin-inline:-.2em;
+  transition:color .18s var(--ease),background .18s var(--ease)}
+.guide__body a:hover,.guide__body a:focus-visible{
+  color:var(--paper-raised);background:var(--rust);text-decoration-color:transparent}
+
+/* ---------- closing block ---------- */
+.guide__end{margin-top:var(--s6);padding-top:var(--s4);
+  border-top:1px solid rgba(181,101,29,.5);max-width:68ch}
+.guide__end h2{font-size:clamp(1.4rem,2.6vw,1.9rem);max-width:24ch}
+.guide__end p{margin-top:var(--s2);color:var(--muted);line-height:1.6}
+.guide__end-go{display:flex;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s3)}
+
+@media (max-width:700px){
+  .guide__head{max-width:none}
+  .guide__body,.guide__end{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+
+</head>
+
+<body>
+<div class="page">
+__NAV_HTML__
+
+<main>
+  <article class="guide has-topo">
+    <div class="topo topo--open" aria-hidden="true">__TOPO_OPEN__</div>
+    <div class="wrap">
+
+      <header class="guide__head">
+        <h1>__GUIDE_HEADING__</h1>
+        <p class="guide__stand">__GUIDE_STAND__</p>
+        <p class="guide__meta">
+          <span>Published <time datetime="__GUIDE_DATE__">__GUIDE_DATE_HUMAN__</time></span>
+          <span>__GUIDE_READ__ minute read</span>
+        </p>
+      </header>
+
+      <div class="guide__body">
+__GUIDE_BODY__
+      </div>
+
+      <div class="guide__end">
+        <h2>Want this looked at properly?</h2>
+        <p>Describe the symptom. Working out the actual problem is our job, not yours.</p>
+        <div class="guide__end-go">
+          <a class="btn" href="contact.html">Talk to us</a>
+          <a class="btn btn--ghost" href="faq.html">Read the FAQ</a>
+        </div>
+      </div>
+
+    </div>
+  </article>
+</main>
+
+__FOOT_HTML__
+</div>
+
+<script>
+__NAV_JS__
+</script>
+</body>
+</html>

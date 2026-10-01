@@ -3,7 +3,7 @@ built .html files at the root.
 
   src/index.template.html    ->  index.html
   src/contact.template.html  ->  contact.html
-  src/sub.template.html      ->  landmarks.html, kit.html, newsroom.html
+  src/sub.template.html      ->  landmarks.html (the last holding page)
 
 Anything shared lives in exactly ONE place and is injected at build time:
 
@@ -49,7 +49,7 @@ SOCIAL_ICONS = [
 HOLDING_PAGES = [
     ('landmarks.html', 'landmarks', 'Landmarks'),
     ('kit.html', 'kit', 'The Kit'),
-    ('newsroom.html', 'newsroom', 'Newsroom'),
+    ('guides.html', 'guides', 'Guides'),
 ]
 
 
@@ -61,10 +61,19 @@ HOLDING_PAGES = [
 SITE = 'https://cairnco.cloud'
 
 LEGAL_NAME = 'CAIRNCO HOLDINGS LLP'
+# Every written form of the name, so they resolve to one entity. Google
+# matched the registry record titled 'CAIRNCO HOLDINGS', without the LLP,
+# which the site had never declared.
+ALT_NAMES = ['CairnCo Holdings', 'CAIRNCO HOLDINGS', 'Cairnco Holdings LLP']
 UEN = 'T26LL0983A'
 EMAIL = 'hello@cairnco.cloud'
 FOUNDED = '2026-09-10'          # ACRA registration
 SAME_AS = [
+    # The ACRA-derived registry listing. Highest-trust entry here, and the only
+    # one that carries the registered name and UEN on a third-party page. It
+    # has no website field of its own, so this is the only thing joining the
+    # entity record to this site. Keep it first.
+    'https://www.sgpbusiness.com/company/Cairnco-Holdings',
     'https://www.tiktok.com/@cairnco_holdings',
     'https://www.instagram.com/cairnco.holdings',
     # This is the machine-readable claim that the LinkedIn page is the same
@@ -102,7 +111,7 @@ LANGS = {
                   'AI 工作流', '自动化', '云服务']),
 }
 
-# noindex is deliberate on Landmarks and Newsroom, which are still holding
+# noindex is deliberate on Landmarks and Guides, which are still holding
 # pages. Near-identical 30-word pages in the index are a quality signal problem,
 # not a win. Remove the flag the moment a page has real content, and it joins
 # the sitemap. The Kit came off it on 26 Sep: the English page is full, and the
@@ -261,20 +270,128 @@ PAGE_META = {
         zh=dict(title='工具箱 | CairnCo 为新加坡企业提供的七项服务',
                 desc='网站建设、内部工具、AI 工作流、自动化、SEO 与 AEO、营销、云服务。'
                      'CairnCo 为新加坡中小企业做的七件事，以及每一项里具体包含什么。')),
-    'newsroom.html': dict(
-        slug='newsroom',
+    'guides.html': dict(
+        slug='guides',
         priority='0.3',
+        # Deliberately noindex until there are three articles. A list of two
+        # reads as thin, and this domain already has pages sitting at
+        # "crawled, currently not indexed": a thin index would earn the same
+        # verdict and be harder to shift later. Flip to index=True, and raise
+        # the priority, when article three ships.
         index=False,
-        en=dict(title='Newsroom | CairnCo',
-                desc='News from CairnCo. This page is being written.'),
-        zh=dict(title='新闻室 | CairnCo',
-                desc='CairnCo 的最新消息。页面正在撰写中。')),
+        en=dict(title='Guides | CairnCo',
+                desc='Practical guides for Singapore businesses on search, '
+                     'automation and the technology underneath them.'),
+        zh=dict(title='指南 | CairnCo',
+                desc='CairnCo 为新加坡企业撰写的实用指南：搜索、自动化，以及背后的技术。')),
 }
+
+
+# ---- Guides -------------------------------------------------------------
+# One entry per article. Adding a guide is a DATA change: an entry in this list
+# and a markdown file at src/guides/<md>. The page, its Article schema, its
+# sitemap row, its hreflang and its card on /guides/ all follow from here, so
+# nothing below this line needs editing to publish an article.
+#
+# The shape, for whoever adds the next one:
+#   dict(key='guide-aeo.html',     PAGE_META key; must end .html and be unique
+#        slug='guides/answer-engine-optimisation-singapore',
+#        md='answer-engine-optimisation-singapore.md',   under src/guides/
+#        title='... | CairnCo',    the <title>, under about 60 characters
+#        desc='...',               meta description, under about 158
+#        heading='...',            the h1, usually shorter than the title
+#        stand='...',              one sentence under the h1
+#        card='...',               one sentence on the /guides/ index
+#        published='2026-10-01', modified='2026-10-01')
+#
+# Articles are English only for now, so each gets langs=('en',) below.
+GUIDES = [
+]
+GUIDE_BY_KEY = {}
+
+
+def md_to_html(text, where):
+    """The small markdown subset a guide needs: h2, h3, paragraphs, bullet and
+    numbered lists, blockquotes, bold, inline code and links. Deliberately not a
+    full parser. The site has no dependencies and this keeps it that way; if an
+    article ever needs more than this, the honest fix is to write that bit as
+    HTML in the markdown rather than to grow a parser here."""
+    import re as _re
+
+    def esc(t):
+        return t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+    def inline(t):
+        t = esc(t)
+        t = _re.sub(r'`([^`]+)`', r'<code>\1</code>', t)
+        t = _re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', t)
+        # [text](dest): a bare page name is rewritten per language later, the
+        # same as any other href in a template.
+        t = _re.sub(r'\[([^\]]+)\]\(([^)\s]+)\)', r'<a href="\2">\1</a>', t)
+        return t
+
+    out, lines, i = [], text.replace('\r\n', '\n').split('\n'), 0
+    while i < len(lines):
+        line = lines[i]
+        if not line.strip():
+            i += 1; continue
+        if line.startswith('### '):
+            out.append('<h3>%s</h3>' % inline(line[4:].strip())); i += 1
+        elif line.startswith('## '):
+            out.append('<h2>%s</h2>' % inline(line[3:].strip())); i += 1
+        elif line.startswith('# '):
+            sys.exit('%s: a guide must not contain an h1; the template owns it' % where)
+        elif line.startswith('> '):
+            buf = []
+            while i < len(lines) and lines[i].startswith('> '):
+                buf.append(lines[i][2:].strip()); i += 1
+            out.append('<blockquote><p>%s</p></blockquote>' % inline(' '.join(buf)))
+        elif line.lstrip().startswith(('- ', '* ')):
+            buf = []
+            while i < len(lines) and lines[i].lstrip().startswith(('- ', '* ')):
+                buf.append('<li>%s</li>' % inline(lines[i].lstrip()[2:].strip())); i += 1
+            out.append('<ul>%s</ul>' % ''.join(buf))
+        elif _re.match(r'\s*\d+\. ', line):
+            buf = []
+            while i < len(lines) and _re.match(r'\s*\d+\. ', lines[i]):
+                buf.append('<li>%s</li>' % inline(_re.sub(r'^\s*\d+\. ', '', lines[i]).strip())); i += 1
+            out.append('<ol>%s</ol>' % ''.join(buf))
+        else:
+            buf = []
+            while i < len(lines) and lines[i].strip() and not lines[i].startswith(('#', '> ')) \
+                    and not lines[i].lstrip().startswith(('- ', '* ')) \
+                    and not _re.match(r'\s*\d+\. ', lines[i]):
+                buf.append(lines[i].strip()); i += 1
+            out.append('<p>%s</p>' % inline(' '.join(buf)))
+    return '\n'.join(out)
+
+
+def human_date(iso):
+    from datetime import date
+    y, m, d = (int(x) for x in iso.split('-'))
+    months = ('January', 'February', 'March', 'April', 'May', 'June', 'July',
+              'August', 'September', 'October', 'November', 'December')
+    return '%d %s %d' % (d, months[m - 1], y)
 
 
 def _esc(s):
     return (s.replace('&', '&amp;').replace('<', '&lt;')
              .replace('>', '&gt;').replace('"', '&quot;'))
+
+
+# Every guide becomes a PAGE_META entry, which is what gives it a canonical, an
+# hreflang pair, a sitemap row and its head meta. Keys must not collide with a
+# hand-written page.
+for _g in GUIDES:
+    if _g['key'] in PAGE_META:
+        sys.exit('guide key %s collides with an existing page' % _g['key'])
+    GUIDE_BY_KEY[_g['key']] = _g
+    PAGE_META[_g['key']] = dict(
+        slug=_g['slug'],
+        priority='0.8',
+        index=True,
+        langs=('en',),
+        en=dict(title=_g['title'], desc=_g['desc']))
 
 
 def page_path(lang, filename):
@@ -331,6 +448,7 @@ def jsonld_home(lang):
         '@id': SITE + '/#org',
         'name': 'CairnCo',
         'legalName': LEGAL_NAME,
+        'alternateName': ALT_NAMES,
         'identifier': UEN,
         'url': page_url(lang, 'index.html'),
         'email': EMAIL,
@@ -367,6 +485,27 @@ def jsonld_crumb(lang, name, path):
                 'item': page_url(lang, 'index.html')},
                {'@type': 'ListItem', 'position': 2, 'name': name,
                 'item': SITE + path}]}
+    return ('<script type="application/ld+json">'
+            + json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
+            + '</script>')
+
+
+def jsonld_article(filename, lang):
+    """Article schema for a guide. author and publisher both point at the
+    existing ProfessionalService node rather than repeating the organisation,
+    so there is one entity on this site and not three."""
+    import json
+    g = GUIDE_BY_KEY[filename]
+    m = localized_meta(filename, lang)
+    doc = {'@context': 'https://schema.org', '@type': 'Article',
+           'headline': g['heading'],
+           'description': m['desc'],
+           'datePublished': g['published'],
+           'dateModified': g['modified'],
+           'inLanguage': LANGS[lang]['html'],
+           'mainEntityOfPage': {'@type': 'WebPage', '@id': page_url(lang, filename)},
+           'author': {'@id': SITE + '/#org'},
+           'publisher': {'@id': SITE + '/#org'}}
     return ('<script type="application/ld+json">'
             + json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
             + '</script>')
@@ -421,6 +560,8 @@ def head_meta(filename, lang):
         out.append(jsonld_crumb(lang, m['title'].split(' | ')[0], path))
     if filename == 'faq.html':
         out.append(jsonld_faq(lang))
+    if filename in GUIDE_BY_KEY:
+        out.append(jsonld_article(filename, lang))
     return '\n'.join(out)
 
 
@@ -545,7 +686,10 @@ ZH_TEXT = {
     'Home': '首页',
     'Landmarks': '作品地标',
     'The Kit': '工具箱',
-    'Newsroom': '新闻室',
+    'Guides': '指南',
+    'Practical writing on search, automation and the technology underneath them.':
+        '关于搜索、自动化，以及背后技术的实用文章。',
+    'The first guides are being written.': '第一批指南正在撰写中。',
     'Contact us': '联系我们',
     'Book a discovery call': '预约咨询',
     'See what we build': '看看我们建设什么',
@@ -807,10 +951,22 @@ def strip_en_only(text, lang):
     return re.sub(r'<!--EN-ONLY-->.*?<!--/EN-ONLY-->', '', text, flags=re.S)
 
 
+def strip_not_en(text, lang):
+    """The mirror of the above: <!--NOT-EN--> ... <!--/NOT-EN--> is cut from
+    English pages and survives everywhere else. Needed so a page can say one
+    thing in English and a different thing in Chinese, rather than saying both.
+    The guides index uses it: English lists the articles, Chinese says they are
+    still being written, because the articles are English only."""
+    if lang == 'en':
+        return re.sub(r'<!--NOT-EN-->.*?<!--/NOT-EN-->', '', text, flags=re.S)
+    return text.replace('<!--NOT-EN-->', '').replace('<!--/NOT-EN-->', '')
+
+
 def localize(text, lang):
     cfg = LANGS[lang]
     text = text.replace('<html lang="en">', '<html lang="%s">' % cfg['html'])
     text = strip_en_only(text, lang)
+    text = strip_not_en(text, lang)
     head, sep, body = text.partition('</head>')
     if not sep:
         head, body = '', text
@@ -859,7 +1015,7 @@ def rewrite_links(text, lang):
         'contact.html': '%s/contact/' % LANGS[lang]['prefix'],
         'landmarks.html': '%s/landmarks/' % LANGS[lang]['prefix'],
         'kit.html': '%s/kit/' % LANGS[lang]['prefix'],
-        'newsroom.html': '%s/newsroom/' % LANGS[lang]['prefix'],
+        'guides.html': '%s/guides/' % LANGS[lang]['prefix'],
         'faq.html': '%s/faq/' % LANGS[lang]['prefix'],
     }
 
@@ -1091,15 +1247,76 @@ if _untranslated:
         print('  %s' % s[:90])
     sys.exit('add them to ZH_TEXT, then rebuild')
 
+def guide_cards():
+    """The /guides/ index list. Wrapped EN-ONLY because the articles themselves
+    are English only: a Chinese index that lists English pages sends a Chinese
+    reader to a page they did not ask for. When the articles get Chinese
+    versions this wrapper comes off."""
+    if not GUIDES:
+        return '      <p class="gix__none">The first guides are being written.</p>'
+    arrow = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+             'aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>')
+    rows = []
+    for g in GUIDES:
+        rows.append(
+            '        <a class="gcard" href="/%s/">\n'
+            '          <span class="gcard__date">%s</span>\n'
+            '          <h2>%s</h2>\n'
+            '          <p>%s</p>\n'
+            '          <span class="gcard__go">Read the guide%s</span>\n'
+            '        </a>'
+            % (g['slug'], human_date(g['published']),
+               _esc(g['heading']), _esc(g['card']), arrow))
+    return ('<!--EN-ONLY-->      <div class="gix__list">\n'
+            + '\n'.join(rows)
+            + '\n      </div><!--/EN-ONLY-->\n'
+            + '<!--NOT-EN-->      <p class="gix__none">'
+              'The first guides are being written.</p><!--/NOT-EN-->')
+
+
+def guide_data(g):
+    """Everything guide.template.html needs for one article."""
+    import os
+    path = SRC / 'guides' / g['md']
+    if not path.is_file():
+        sys.exit('guide %s has no markdown at src/guides/%s.\n'
+                 'Drop the file in, or take the entry out of GUIDES.'
+                 % (g['key'], g['md']))
+    raw = path.read_text(encoding='utf-8')
+    words = len([w for w in raw.split() if any(c.isalnum() for c in w)])
+    return {
+        '__GUIDE_HEADING__': _esc(g['heading']),
+        '__GUIDE_STAND__': _esc(g['stand']),
+        '__GUIDE_DATE__': g['published'],
+        '__GUIDE_DATE_HUMAN__': human_date(g['published']),
+        '__GUIDE_READ__': str(max(1, int(round(words / 220.0)))),
+        '__GUIDE_BODY__': md_to_html(raw, g['md']),
+    }
+
+
+_guides_tpl = read('guides-index.template.html')
+_guide_tpl = read('guide.template.html')
+
 pages = [
     ('index.html', home, {}),
     ('contact.html', read('contact.template.html'), {}),
     ('faq.html', _faq_tpl, {}),
     ('kit.html', read('kit.template.html'), {}),
 ]
+pages.append(('guides.html', _guides_tpl, {
+    '__GUIDES_TITLE__': 'Guides',
+    '__GUIDES_INTRO__': 'Practical writing on search, automation and the '
+                        'technology underneath them.',
+    '__GUIDES_CARDS__': guide_cards()}))
+
+for _g in GUIDES:
+    pages.append((_g['key'], _guide_tpl, guide_data(_g)))
+
 for filename, slug, name in HOLDING_PAGES:
-    if filename == 'kit.html':
-        continue          # a real page now, built from its own template above
+    # kit and guides are real pages now, each built from its own template above
+    if filename in ('kit.html', 'guides.html'):
+        continue
     pages.append((filename, sub, {'__PAGE_NAME__': name}))
 
 for lang in LANGS:
@@ -1107,7 +1324,7 @@ for lang in LANGS:
         if lang not in page_langs(filename):
             continue
         data = dict(extra)
-        if filename in ('landmarks.html', 'kit.html', 'newsroom.html') and lang == 'zh':
+        if filename in ('landmarks.html',) and lang == 'zh':
             data['__PAGE_NAME__'] = localized_meta(filename, lang)['title'].split(' | ')[0]
         data['__META__'] = head_meta(filename, lang)
         html = localize(fill(template, data), lang)
@@ -1132,11 +1349,15 @@ for lang in LANGS:
 # with a real 301 before it looks for an asset, so there is no file left to
 # collide and every crawler follows a 301. First match wins, so the bare /en/
 # line has to come before the wildcard.
-REDIRECTS = """# The original flat addresses.
+REDIRECTS = """# Newsroom became Guides. These keep the old addresses alive.
+/newsroom/       /guides/     301
+/zh/newsroom/    /zh/guides/  301
+/newsroom.html   /guides/     301
+
+# The original flat addresses.
 /contact.html    /contact/    301
 /landmarks.html  /landmarks/  301
 /kit.html        /kit/        301
-/newsroom.html   /newsroom/   301
 
 # The /en/ prefix that briefly held the English pages.
 /en/             /            301

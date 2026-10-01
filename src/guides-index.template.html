@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+__HEAD__
+__META__
+
+<style>
+__SHELL_CSS__
+
+/* ---------- the guides index ----------
+   A list, nothing more. Title, one sentence, a date. Anything else here
+   competes with the articles, which are the thing worth reading. */
+.gix{position:relative;padding-block:var(--s5)}
+.gix::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(61,90,80,.26) 12%,rgba(61,90,80,.26) 88%,transparent)}
+.gix__head{max-width:34ch}
+.gix__head h1{font-size:clamp(2.1rem,4.4vw,3.05rem);line-height:1.1;letter-spacing:-.032em}
+.gix__sub{margin-top:var(--s3);font-size:1.06rem;line-height:1.55;color:var(--muted);max-width:54ch}
+
+.gix__list{margin-top:var(--s5);max-width:72ch;border-top:1px solid rgba(61,90,80,.22)}
+
+/* The whole row is the link, so the target is the row and not just the title. */
+.gcard{display:block;text-decoration:none;color:inherit;position:relative;
+  padding-block:var(--s4);border-bottom:1px solid rgba(61,90,80,.16);
+  transition:background .18s var(--ease)}
+.gcard__date{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted)}
+.gcard h2{margin-top:.55rem;font-size:clamp(1.3rem,2.4vw,1.72rem);line-height:1.22;
+  letter-spacing:-.022em;color:var(--ink);max-width:28ch;
+  transition:color .18s var(--ease)}
+.gcard p{margin-top:.7rem;font-size:1.02rem;line-height:1.6;color:var(--muted);max-width:58ch}
+.gcard__go{margin-top:.9rem;display:inline-flex;align-items:center;gap:.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--teal-deep)}
+.gcard__go svg{width:14px;height:14px;transition:transform .18s var(--ease)}
+.gcard:hover h2,.gcard:focus-visible h2{color:var(--rust)}
+.gcard:hover .gcard__go svg,.gcard:focus-visible .gcard__go svg{transform:translateX(4px)}
+
+.gix__none{margin-top:var(--s5);font-family:var(--mono);font-size:.8rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+@media (max-width:700px){
+  .gix__head,.gix__sub,.gix__list{max-width:none}
+  .gcard h2,.gcard p{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+
+</head>
+
+<body>
+<div class="page">
+__NAV_HTML__
+
+<main>
+  <section class="gix has-topo">
+    <div class="topo topo--open" aria-hidden="true">__TOPO_OPEN__</div>
+    <div class="wrap">
+
+      <div class="gix__head">
+        <h1>__GUIDES_TITLE__</h1>
+      </div>
+      <p class="gix__sub">__GUIDES_INTRO__</p>
+
+__GUIDES_CARDS__
+
+    </div>
+  </section>
+</main>
+
+__FOOT_HTML__
+</div>
+
+<script>
+__NAV_JS__
+</script>
+</body>
+</html>

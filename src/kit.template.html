@@ -125,7 +125,10 @@ __SHELL_CSS__
   .kit-topic::before{display:none}
   .kit-topic:first-of-type{padding-top:var(--s4)}
   .kit-topic__row{display:block}
-  .bn{width:100%;max-width:520px;margin-inline:auto;flex-direction:row;align-items:center;gap:.7rem;
+  /* No max-width. A 520px cap centred the banners, which read fine on a phone
+     but at 768 left a 124px inset on each side while every other page on the
+     site uses 24px there. The banner now matches the content column. */
+  .bn{width:100%;flex-direction:row;align-items:center;gap:.7rem;
     min-height:0;padding:1.05rem 1.1rem;margin-block:.45rem;border-radius:12px}
   /* the mark gets its own opaque tile, so no contour line crosses it */
   .bn__mark{flex:none;width:46px;height:46px;margin:0;border-radius:11px;

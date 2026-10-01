@@ -221,6 +221,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 /* ---------- footer ---------- */
 .foot{border-top:1px solid rgba(61,90,80,.22);padding-block:var(--s4) var(--s5);
   display:flex;gap:var(--s3) var(--s4);flex-wrap:wrap;justify-content:space-between;align-items:flex-start}
+/* The language switch is a standalone control, so it owes a 44px target. It
+   measured 32x26. Inline links inside a sentence are exempt from that rule
+   and are deliberately left alone. */
+.foot a[hreflang]{display:inline-flex;align-items:center;min-height:44px;padding-inline:10px;
+  margin-inline:-10px}
 .foot__legal{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em;color:var(--muted);line-height:1.9}
 .foot__links{display:flex;gap:var(--s3);flex-wrap:wrap;font-size:.94rem}
 .foot__links a{text-decoration:none;color:var(--muted);padding:.4em .8em;border-radius:999px;
@@ -286,7 +291,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .reach__mail::after{content:none}
 
 /* ---------- send us a message ---------- */
-.msg{background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);border-radius:15px;
+.msg{background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);border-radius:14px;
   box-shadow:0 14px 34px rgba(31,42,38,.08)}
 .field{display:block;margin-top:var(--s3)}
 .field > span{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.09em;
@@ -363,7 +368,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   color:var(--paper-raised)}
 
 /* ---------- build your own brief ---------- */
-.brief__panel{margin-top:var(--s4);border:1px dashed rgba(181,101,29,.55);border-radius:16px;
+.brief__panel{margin-top:var(--s4);border:1px dashed rgba(181,101,29,.55);border-radius:14px;
   padding:clamp(20px,2.4vw,30px) clamp(22px,2.8vw,34px);
   display:flex;gap:clamp(20px,3vw,40px);align-items:center;
   justify-content:space-between;flex-wrap:wrap}
@@ -415,7 +420,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   <nav class="nav__links" id="navLinks">
     <a href="/landmarks/">Landmarks</a>
     <a href="/kit/">The Kit</a>
-    <a href="/newsroom/">Newsroom</a>
+    <a href="/guides/">Guides</a>
     <a href="/faq/">FAQ</a>
     <a href="/zh/" hreflang="zh-Hans-SG" lang="zh-Hans-SG">中文</a>
     <a class="btn" href="/contact/">Contact us</a>
@@ -589,7 +594,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     <a href="/">Home</a>
     <a href="/landmarks/">Landmarks</a>
     <a href="/kit/">The Kit</a>
-    <a href="/newsroom/">Newsroom</a>
+    <a href="/guides/">Guides</a>
     <a href="/contact/">Contact us</a>
   </div>
     <a href="/zh/" hreflang="zh-Hans-SG" lang="zh-Hans-SG">中文</a>

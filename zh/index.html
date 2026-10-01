@@ -501,7 +501,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   position:relative;z-index:2}
 .stage{position:relative;height:262px;perspective:1150px;perspective-origin:50% 44%}
 .rev{position:absolute;left:0;right:0;top:50%;margin-top:-104px;
-  background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);border-radius:15px;
+  background:var(--paper-raised);border:1px solid rgba(61,90,80,.18);border-radius:14px;
   padding:26px 28px;box-shadow:0 16px 36px rgba(31,42,38,.11);
   transform-origin:50% 50%;will-change:transform,opacity;backface-visibility:hidden;
   transition:transform var(--rev-step) var(--ease),
@@ -565,7 +565,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .who__screen{min-height:calc(100vh - var(--navh));display:flex;flex-direction:column;
   justify-content:center;padding-block:clamp(26px,4.5vh,52px)}
 .who__door{padding-block:0 var(--s5);margin-top:var(--s4)}
-.sec__sub{margin-top:var(--s2);font-size:1.06rem;color:var(--muted);max-width:none;line-height:1.5}
+/* This deliberately drops the 54ch cap so the sector intro can run the full
+   width. It used to be written unscoped, which silently uncapped EVERY
+   .sec__sub on the page: one of them measured 112 characters per line. */
+.who .sec__sub{max-width:none}
 
 .sectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   gap:clamp(14px,2.2vh,22px);margin-top:clamp(20px,3.4vh,40px)}
@@ -738,8 +741,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 .close h2{font-size:clamp(2.1rem,4.6vw,3.2rem);max-width:16ch}
 .close__sub{margin-top:var(--s3);font-family:var(--display);font-size:clamp(1.2rem,2.4vw,1.6rem);color:var(--teal)}
 .close__cta{margin-top:var(--s4);display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
-.close__fine{margin-top:var(--s3);font-size:.94rem;color:var(--muted)}
-.close__fine a{color:var(--teal-deep);text-decoration:none;padding:.18em .5em;border-radius:5px;
+/* 70ch, because without a cap this ran to 128 characters per line at 1440,
+   which is roughly double a comfortable measure. */
+.close__fine{margin-top:var(--s3);font-size:.94rem;color:var(--muted);max-width:70ch}
+.close__fine a{color:var(--teal-deep);text-decoration:none;padding:.18em .5em;border-radius:6px;
   transition:color .18s var(--ease),background .18s var(--ease)}
 .close__fine a:hover,.close__fine a:focus-visible{color:var(--paper-raised);background:var(--rust)}
 
@@ -747,6 +752,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 /* ---------- footer ---------- */
 .foot{border-top:1px solid rgba(61,90,80,.22);padding-block:var(--s4) var(--s5);
   display:flex;gap:var(--s3) var(--s4);flex-wrap:wrap;justify-content:space-between;align-items:flex-start}
+/* The language switch is a standalone control, so it owes a 44px target. It
+   measured 32x26. Inline links inside a sentence are exempt from that rule
+   and are deliberately left alone. */
+.foot a[hreflang]{display:inline-flex;align-items:center;min-height:44px;padding-inline:10px;
+  margin-inline:-10px}
 .foot__legal{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em;color:var(--muted);line-height:1.9}
 .foot__links{display:flex;gap:var(--s3);flex-wrap:wrap;font-size:.94rem}
 .foot__links a{text-decoration:none;color:var(--muted);padding:.4em .8em;border-radius:999px;
@@ -885,7 +895,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   <nav class="nav__links" id="navLinks">
     <a href="/zh/landmarks/">作品地标</a>
     <a href="/zh/kit/">工具箱</a>
-    <a href="/zh/newsroom/">新闻室</a>
+    <a href="/zh/guides/">指南</a>
     <a href="/zh/faq/">常见问题</a>
     <a href="/" hreflang="en-SG" lang="en-SG">English</a>
     <a class="btn" href="/zh/contact/">联系我们</a>
@@ -1181,7 +1191,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
     <a href="/zh/">首页</a>
     <a href="/zh/landmarks/">作品地标</a>
     <a href="/zh/kit/">工具箱</a>
-    <a href="/zh/newsroom/">新闻室</a>
+    <a href="/zh/guides/">指南</a>
     <a href="/zh/contact/">联系我们</a>
   </div>
     <a href="/" hreflang="en-SG" lang="en-SG">English</a>

@@ -1,8 +1,12 @@
+# Newsroom became Guides. These keep the old addresses alive.
+/newsroom/       /guides/     301
+/zh/newsroom/    /zh/guides/  301
+/newsroom.html   /guides/     301
+
 # The original flat addresses.
 /contact.html    /contact/    301
 /landmarks.html  /landmarks/  301
 /kit.html        /kit/        301
-/newsroom.html   /newsroom/   301
 
 # The /en/ prefix that briefly held the English pages.
 /en/             /            301

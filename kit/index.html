@@ -221,6 +221,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
 /* ---------- footer ---------- */
 .foot{border-top:1px solid rgba(61,90,80,.22);padding-block:var(--s4) var(--s5);
   display:flex;gap:var(--s3) var(--s4);flex-wrap:wrap;justify-content:space-between;align-items:flex-start}
+/* The language switch is a standalone control, so it owes a 44px target. It
+   measured 32x26. Inline links inside a sentence are exempt from that rule
+   and are deliberately left alone. */
+.foot a[hreflang]{display:inline-flex;align-items:center;min-height:44px;padding-inline:10px;
+  margin-inline:-10px}
 .foot__legal{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em;color:var(--muted);line-height:1.9}
 .foot__links{display:flex;gap:var(--s3);flex-wrap:wrap;font-size:.94rem}
 .foot__links a{text-decoration:none;color:var(--muted);padding:.4em .8em;border-radius:999px;
@@ -345,7 +350,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--rust);outline-offse
   .kit-topic::before{display:none}
   .kit-topic:first-of-type{padding-top:var(--s4)}
   .kit-topic__row{display:block}
-  .bn{width:100%;max-width:520px;margin-inline:auto;flex-direction:row;align-items:center;gap:.7rem;
+  /* No max-width. A 520px cap centred the banners, which read fine on a phone
+     but at 768 left a 124px inset on each side while every other page on the
+     site uses 24px there. The banner now matches the content column. */
+  .bn{width:100%;flex-direction:row;align-items:center;gap:.7rem;
     min-height:0;padding:1.05rem 1.1rem;margin-block:.45rem;border-radius:12px}
   /* the mark gets its own opaque tile, so no contour line crosses it */
   .bn__mark{flex:none;width:46px;height:46px;margin:0;border-radius:11px;
@@ -434,7 +442,7 @@ html.kit-locked body{position:fixed;left:0;right:0;width:100%;overflow:hidden}
   <nav class="nav__links" id="navLinks">
     <a href="/landmarks/">Landmarks</a>
     <a href="/kit/">The Kit</a>
-    <a href="/newsroom/">Newsroom</a>
+    <a href="/guides/">Guides</a>
     <a href="/faq/">FAQ</a>
     <a href="/zh/" hreflang="zh-Hans-SG" lang="zh-Hans-SG">中文</a>
     <a class="btn" href="/contact/">Contact us</a>
@@ -714,7 +722,7 @@ html.kit-locked body{position:fixed;left:0;right:0;width:100%;overflow:hidden}
     <a href="/">Home</a>
     <a href="/landmarks/">Landmarks</a>
     <a href="/kit/">The Kit</a>
-    <a href="/newsroom/">Newsroom</a>
+    <a href="/guides/">Guides</a>
     <a href="/contact/">Contact us</a>
   </div>
     <a href="/zh/" hreflang="zh-Hans-SG" lang="zh-Hans-SG">中文</a>
