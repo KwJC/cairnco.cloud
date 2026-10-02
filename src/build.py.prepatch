@@ -272,12 +272,13 @@ PAGE_META = {
                      'CairnCo 为新加坡中小企业做的七件事，以及每一项里具体包含什么。')),
     'guides.html': dict(
         slug='guides',
-        # Indexable from 3 Oct 2026, on JC's explicit override of the earlier
-        # noindex. The hub has to be crawlable for the articles to be found
-        # through it. Priority sits below the articles it points at, because the
-        # article is the page worth ranking and the index is the way in.
-        priority='0.6',
-        index=True,
+        priority='0.3',
+        # Deliberately noindex until there are three articles. A list of two
+        # reads as thin, and this domain already has pages sitting at
+        # "crawled, currently not indexed": a thin index would earn the same
+        # verdict and be harder to shift later. Flip to index=True, and raise
+        # the priority, when article three ships.
+        index=False,
         en=dict(title='Guides | CairnCo',
                 desc='Practical guides for Singapore businesses on search, '
                      'automation and the technology underneath them.'),
@@ -305,35 +306,6 @@ PAGE_META = {
 #
 # Articles are English only for now, so each gets langs=('en',) below.
 GUIDES = [
-    dict(key='guide-aeo.html',
-         slug='guides/answer-engine-optimisation-singapore',
-         md='answer-engine-optimisation-singapore.md',
-         md_zh='answer-engine-optimisation-singapore.zh.md',
-         langs=('en', 'zh'),
-         published='2026-10-03', modified='2026-10-03',
-         en=dict(
-             # 56 characters. No ' | CairnCo' suffix: it would push past 60 and
-             # get cut in the result. The h1 below is deliberately shorter than
-             # the title, and carries a non-breaking space so the line breaks
-             # after 'optimisation' instead of orphaning 'Singapore'.
-             title='Answer Engine Optimisation in Singapore: Get Named by AI',
-             desc='What answer engine optimisation is, which Singapore '
-                  'searches already get AI answers, and how to get your '
-                  'business named by ChatGPT, Perplexity and Google.',
-             heading='Answer engine optimisation in Singapore',
-             stand='How to get your business named when someone asks ChatGPT, '
-                   "Perplexity or Google's AI instead of searching.",
-             card='What AEO is, which Singapore searches already get AI '
-                  'answers, and what decides who gets named.'),
-         zh=dict(
-             title='新加坡答案引擎优化（AEO）：让 AI 提到你 | CairnCo',
-             desc='什么是答案引擎优化，新加坡哪些搜索已经在出 AI 答案，'
-                  '以及怎么让 ChatGPT、Perplexity 和 Google 的 AI 提到你的公司。',
-             heading='新加坡的答案引擎优化',
-             stand='当别人改用 ChatGPT、Perplexity 或 Google 的 AI 提问，'
-                   '而不是搜索时，怎么让答案里出现你的公司。',
-             card='什么是 AEO，新加坡哪些搜索已经在出 AI 答案，'
-                  '以及谁会被提到由什么决定。')),
 ]
 GUIDE_BY_KEY = {}
 
@@ -394,10 +366,9 @@ def md_to_html(text, where):
     return '\n'.join(out)
 
 
-def human_date(iso, lang='en'):
+def human_date(iso):
+    from datetime import date
     y, m, d = (int(x) for x in iso.split('-'))
-    if lang == 'zh':
-        return '%d年%d月%d日' % (y, m, d)
     months = ('January', 'February', 'March', 'April', 'May', 'June', 'July',
               'August', 'September', 'October', 'November', 'December')
     return '%d %s %d' % (d, months[m - 1], y)
@@ -415,14 +386,12 @@ for _g in GUIDES:
     if _g['key'] in PAGE_META:
         sys.exit('guide key %s collides with an existing page' % _g['key'])
     GUIDE_BY_KEY[_g['key']] = _g
-    _langs = _g.get('langs', ('en',))
-    _m = dict(slug=_g['slug'], priority='0.8', index=True, langs=_langs)
-    for _l in _langs:
-        if _l not in _g:
-            sys.exit('guide %s is listed in %s but carries no %s block'
-                     % (_g['key'], _l, _l))
-        _m[_l] = dict(title=_g[_l]['title'], desc=_g[_l]['desc'])
-    PAGE_META[_g['key']] = _m
+    PAGE_META[_g['key']] = dict(
+        slug=_g['slug'],
+        priority='0.8',
+        index=True,
+        langs=('en',),
+        en=dict(title=_g['title'], desc=_g['desc']))
 
 
 def page_path(lang, filename):
@@ -529,9 +498,7 @@ def jsonld_article(filename, lang):
     g = GUIDE_BY_KEY[filename]
     m = localized_meta(filename, lang)
     doc = {'@context': 'https://schema.org', '@type': 'Article',
-           # The h1 carries a non-breaking space to control where it wraps.
-           # Schema is data, not layout, so it gets an ordinary space.
-           'headline': g[lang]['heading'].replace('\u00a0', ' '),
+           'headline': g['heading'],
            'description': m['desc'],
            'datePublished': g['published'],
            'dateModified': g['modified'],
@@ -598,70 +565,9 @@ def head_meta(filename, lang):
     return '\n'.join(out)
 
 
-CONTENT_DATES = SRC / 'content-dates.json'
-
-# Every finished page, keyed (filename, lang), filled by the render loop below.
-# content_dates() fingerprints these to decide what lastmod each page gets.
-RENDERED = {}
-
-
-def content_dates():
-    """lastmod per page, from when that page's content actually last changed.
-
-    The bug this replaces: every URL carried the build date, so lastmod said
-    "changed today" on all eight pages of a site where nothing had changed.
-    Google documents discounting lastmod when it is unreliable, and Search
-    Console showed it had not re-read the sitemap since 24 September.
-
-    How this works. The build fingerprints each finished page and remembers the
-    fingerprint in content-dates.json, which is committed. Same fingerprint next
-    build means the page did not change, so it keeps its stored date. A
-    different fingerprint means it did, so it takes today.
-
-    Deliberately NOT the file mtime: a clone, a pull, or copying the folder all
-    reset mtimes, which would make every page claim it changed today. That is
-    the same lie as before, just less predictable.
-
-    First run has nothing stored, so everything takes today. Unavoidable, and
-    honest. From the second build on the dates mean something.
-    """
-    import json, hashlib
+def write_sitemap(root, dist):
     from datetime import date
     today = date.today().isoformat()
-    try:
-        store = json.loads(CONTENT_DATES.read_text(encoding='utf-8'))
-    except Exception:
-        store = {}
-    out, drifted = {}, []
-    for (f, lang), html in RENDERED.items():
-        key = '%s|%s' % (f, lang)
-        fp = hashlib.sha256(html.encode('utf-8')).hexdigest()[:16]
-        prev = store.get(key) or {}
-        g = GUIDE_BY_KEY.get(f)
-        if g is not None:
-            # An article carries a modified date a person wrote by hand. A human
-            # saying "I revised this" beats a fingerprint, so it wins. The
-            # fingerprint still runs, to catch an edit that forgot to move it.
-            out[key] = g['modified']
-            if prev.get('fp') not in (None, fp) and prev.get('lastmod') == g['modified']:
-                drifted.append(key)
-        elif prev.get('fp') == fp:
-            out[key] = prev['lastmod']
-        else:
-            out[key] = today
-        store[key] = {'fp': fp, 'lastmod': out[key]}
-    CONTENT_DATES.write_text(
-        json.dumps(store, indent=1, sort_keys=True, ensure_ascii=False) + '\n',
-        encoding='utf-8')
-    if drifted:
-        print('  NOTE: these articles changed but their modified date did not:')
-        for key in drifted:
-            print('    %s  (bump modified in GUIDES)' % key)
-    return out, today
-
-
-def write_sitemap(root, dist):
-    dates, today = content_dates()
     rows = []
     for f, m in PAGE_META.items():
         if not m['index']:
@@ -674,9 +580,7 @@ def write_sitemap(root, dist):
             alt += '<xhtml:link rel="alternate" hreflang="x-default" href="%s" />' % x_default_url(f)
             rows.append('  <url><loc>%s</loc><lastmod>%s</lastmod>'
                         '<changefreq>weekly</changefreq><priority>%s</priority>%s</url>'
-                        % (page_url(lang, f),
-                           dates.get('%s|%s' % (f, lang), today),
-                           m['priority'], alt))
+                        % (page_url(lang, f), today, m['priority'], alt))
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
            'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
@@ -1034,19 +938,6 @@ ZH_TEXT = {
         '我们在新加坡，大部分客户也是新加坡企业，这对 PayNow、PDPA 和本地搜索这些事情很重要。我们远程工作，也可以接新加坡以外的项目，但如果本地经验正是你要买的东西，我们会直说。',
     'Within one working day, to hello@cairnco.cloud or the form on the contact page. Both partners see it.':
         '一个工作日内，发到 hello@cairnco.cloud 或者联系页上的表单。两位合伙人都会看到。',
-
-    # The guide article template's own chrome. The article BODY never reaches
-    # this pass, see the RAW fence in localize(); only the template around it
-    # does, which is why these three are safe as blind substrings.
-    'Published ': '发布于 ',
-    ' minute read': ' 分钟阅读',
-    'Want this looked at properly?': '想让我们正式看一看？',
-
-    # The home page and FAQ links to the guides hub. Keyed as two separate
-    # strings on purpose: rewrite_links rewrites guides.html to /zh/guides/
-    # before this pass runs, so a key carrying the href would never match.
-    'Prefer to read first? ': '想先读一读？',
-    'Read the guides': '阅读指南',
 }
 
 
@@ -1103,19 +994,10 @@ def localize(text, lang):
         # English. ID_ATTRS is guarded against that below.
         body = re.sub(r'\s(?:%s)="[^"]*"' % '|'.join(ID_ATTRS), hold, body)
 
-        # An article body is already written in this language, so it must not
-        # go through the substring pass. ZH_TEXT keys include 'FAQ', 'Cloud',
-        # 'Stack', 'Email' and 'Name', and the AEO article legitimately says
-        # "FAQ 结构化数据": without this fence that became "常见问题 结构化数据"
-        # mid-sentence. Held after rewrite_links, so an article's own internal
-        # links are still rewritten.
-        body = re.sub(r'<!--RAW-->.*?<!--/RAW-->', hold, body, flags=re.S)
-
         for src, dst in sorted(ZH_TEXT.items(), key=lambda item: len(item[0]), reverse=True):
             body = body.replace(src, dst)
         for i, chunk in enumerate(held):
             body = body.replace('@@HOLD_%d@@' % i, chunk)
-    body = body.replace('<!--RAW-->', '').replace('<!--/RAW-->', '')
     return head + sep + body if sep else body
 
 
@@ -1365,78 +1247,51 @@ if _untranslated:
         print('  %s' % s[:90])
     sys.exit('add them to ZH_TEXT, then rebuild')
 
-GUIDE_CARD_CTA = {'en': 'Read the guide', 'zh': '阅读指南'}
-GUIDE_NONE = {'en': 'The first guides are being written.',
-              'zh': '第一批指南正在撰写中。'}
-
-
-def guide_cards(lang):
-    """The /guides/ index list, built in the language of the page it sits on.
-
-    Each card links to the article's own URL in that same language, so a reader
-    is never handed a page in a language they did not ask for. A language with
-    no articles yet gets the holding line instead of an empty list, so the
-    heading never sits over nothing.
-
-    The EN-ONLY wrapper this used to carry is gone: the article has a Chinese
-    version now, so both indexes list a real page."""
+def guide_cards():
+    """The /guides/ index list. Wrapped EN-ONLY because the articles themselves
+    are English only: a Chinese index that lists English pages sends a Chinese
+    reader to a page they did not ask for. When the articles get Chinese
+    versions this wrapper comes off."""
+    if not GUIDES:
+        return '      <p class="gix__none">The first guides are being written.</p>'
     arrow = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
              'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
              'aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>')
     rows = []
     for g in GUIDES:
-        if lang not in g.get('langs', ('en',)):
-            continue
-        t = g[lang]
         rows.append(
-            '        <a class="gcard" href="%s">\n'
+            '        <a class="gcard" href="/%s/">\n'
             '          <span class="gcard__date">%s</span>\n'
             '          <h2>%s</h2>\n'
             '          <p>%s</p>\n'
-            '          <span class="gcard__go">%s%s</span>\n'
+            '          <span class="gcard__go">Read the guide%s</span>\n'
             '        </a>'
-            % (page_path(lang, g['key']), human_date(g['published'], lang),
-               _esc(t['heading']), _esc(t['card']),
-               GUIDE_CARD_CTA[lang], arrow))
-    if not rows:
-        return '      <p class="gix__none">%s</p>' % GUIDE_NONE[lang]
-    return ('      <div class="gix__list">\n'
+            % (g['slug'], human_date(g['published']),
+               _esc(g['heading']), _esc(g['card']), arrow))
+    return ('<!--EN-ONLY-->      <div class="gix__list">\n'
             + '\n'.join(rows)
-            + '\n      </div>')
+            + '\n      </div><!--/EN-ONLY-->\n'
+            + '<!--NOT-EN-->      <p class="gix__none">'
+              'The first guides are being written.</p><!--/NOT-EN-->')
 
 
-def guide_data(g, lang):
-    """Everything guide.template.html needs for one article, in one language."""
-    t = g[lang]
-    md = g['md'] if lang == 'en' else g.get('md_' + lang)
-    if not md:
-        sys.exit('guide %s is built in %s but lists no md_%s file'
-                 % (g['key'], lang, lang))
-    path = SRC / 'guides' / md
+def guide_data(g):
+    """Everything guide.template.html needs for one article."""
+    import os
+    path = SRC / 'guides' / g['md']
     if not path.is_file():
         sys.exit('guide %s has no markdown at src/guides/%s.\n'
                  'Drop the file in, or take the entry out of GUIDES.'
-                 % (g['key'], md))
+                 % (g['key'], g['md']))
     raw = path.read_text(encoding='utf-8')
-    cjk = len(re.findall(r'[\u4e00-\u9fff]', raw))
-    if cjk > 200:
-        # Chinese is written without spaces, so counting words undercounts it
-        # badly: this article splits into a handful of tokens and would claim a
-        # one minute read. Count characters instead, at roughly 400 a minute.
-        minutes = cjk / 400.0
-    else:
-        minutes = len([w for w in raw.split()
-                       if any(c.isalnum() for c in w)]) / 220.0
+    words = len([w for w in raw.split() if any(c.isalnum() for c in w)])
     return {
-        '__GUIDE_HEADING__': _esc(t['heading']),
-        '__GUIDE_STAND__': _esc(t['stand']),
+        '__GUIDE_HEADING__': _esc(g['heading']),
+        '__GUIDE_STAND__': _esc(g['stand']),
         '__GUIDE_DATE__': g['published'],
-        '__GUIDE_DATE_HUMAN__': human_date(g['published'], lang),
-        '__GUIDE_READ__': str(max(1, int(round(minutes)))),
-        # RAW fences the article body off from the ZH_TEXT pass in localize().
-        # The body is already in the right language, and ZH_TEXT is a blind
-        # substring replace. See the note in localize().
-        '__GUIDE_BODY__': '<!--RAW-->' + md_to_html(raw, md) + '<!--/RAW-->',
+        '__GUIDE_DATE_HUMAN__': human_date(g['published']),
+        '__GUIDE_READ__': str(max(1, int(round(words / 220.0)))),
+        '__GUIDE_BODY__': md_to_html(raw, g['md']),
     }
 
 
@@ -1449,25 +1304,14 @@ pages = [
     ('faq.html', _faq_tpl, {}),
     ('kit.html', read('kit.template.html'), {}),
 ]
-# A page's fill data is a dict, or a function of the language when the page
-# differs by more than the ZH_TEXT pass can express. The guides pages do: their
-# text comes from the GUIDES entry and from a per-language markdown file.
-GUIDES_INDEX_TEXT = {
-    'en': dict(title='Guides',
-               intro='Practical writing on search, automation and the '
-                     'technology underneath them.'),
-    'zh': dict(title='指南',
-               intro='关于搜索、自动化，以及背后那些技术的实用文章。'),
-}
-
-pages.append(('guides.html', _guides_tpl, lambda lang: {
-    '__GUIDES_TITLE__': GUIDES_INDEX_TEXT[lang]['title'],
-    '__GUIDES_INTRO__': GUIDES_INDEX_TEXT[lang]['intro'],
-    '__GUIDES_CARDS__': guide_cards(lang)}))
+pages.append(('guides.html', _guides_tpl, {
+    '__GUIDES_TITLE__': 'Guides',
+    '__GUIDES_INTRO__': 'Practical writing on search, automation and the '
+                        'technology underneath them.',
+    '__GUIDES_CARDS__': guide_cards()}))
 
 for _g in GUIDES:
-    pages.append((_g['key'], _guide_tpl,
-                  lambda lang, g=_g: guide_data(g, lang)))
+    pages.append((_g['key'], _guide_tpl, guide_data(_g)))
 
 for filename, slug, name in HOLDING_PAGES:
     # kit and guides are real pages now, each built from its own template above
@@ -1479,12 +1323,11 @@ for lang in LANGS:
     for filename, template, extra in pages:
         if lang not in page_langs(filename):
             continue
-        data = dict(extra(lang) if callable(extra) else extra)
+        data = dict(extra)
         if filename in ('landmarks.html',) and lang == 'zh':
             data['__PAGE_NAME__'] = localized_meta(filename, lang)['title'].split(' | ')[0]
         data['__META__'] = head_meta(filename, lang)
         html = localize(fill(template, data), lang)
-        RENDERED[(filename, lang)] = html
         finish(ROOT / page_out(lang, filename), html)
 
 # Redirects, not content. Two generations of old address are kept alive: the

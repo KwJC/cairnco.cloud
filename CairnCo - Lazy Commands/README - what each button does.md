@@ -1,4 +1,4 @@
-# Lazy Commands
+# CairnCo - Lazy Commands
 
 Six buttons. Double-click one. Each explains itself and asks before doing
 anything permanent.

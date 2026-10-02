@@ -15,7 +15,14 @@ __SHELL_CSS__
 .guide::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(61,90,80,.26) 12%,rgba(61,90,80,.26) 88%,transparent)}
 
-.guide__head{max-width:30ch}
+/* No measure on this wrapper. ch resolves against the element's OWN font-size,
+   so 30ch here was 30 x 17px = 317px: the 49px h1 stacked into FOUR lines
+   inside it, and the standfirst lost half of the 46ch it asks for below.
+   Measured at 1440px before and after. The h1 and the standfirst each carry
+   their own measure at their own size. No font size is changed: the six-step
+   scale above is untouched. The non-breaking space in the heading text keeps
+   'in Singapore' together so 'Singapore' is never orphaned at phone widths. */
+.guide__head{max-width:none}
 .guide__head h1{font-size:clamp(2.1rem,4.4vw,3.05rem);line-height:1.1;letter-spacing:-.032em}
 .guide__stand{margin-top:var(--s3);font-family:var(--display);font-weight:400;
   font-size:clamp(1.12rem,2.1vw,1.42rem);line-height:1.5;color:var(--teal);max-width:46ch}

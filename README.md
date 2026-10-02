@@ -13,7 +13,7 @@ than hand-drawn.
 
 ## The buttons
 
-Everything you do to this site is a double-click in **`Lazy Commands\`**:
+Everything you do to this site is a double-click in **`CairnCo - Lazy Commands\`**:
 
 | Button | What it does |
 |---|---|
@@ -22,9 +22,9 @@ Everything you do to this site is a double-click in **`Lazy Commands\`**:
 | `SAVE-TO-GITHUB.bat` | send your work **up** to GitHub |
 | `PULL-LATEST.bat` | bring Emmanuel's work **down** |
 
-`Lazy Commands\README - what each button does.md` explains each one.
+`CairnCo - Lazy Commands\README - what each button does.md` explains each one.
 
-**Previewing it:** run `Lazy Commands\PREVIEW.bat`, then open
+**Previewing it:** run `CairnCo - Lazy Commands\PREVIEW.bat`, then open
 http://localhost:8000.
 
 Double-clicking a built page does **not** work. Every link starts with `/`, and
@@ -35,17 +35,17 @@ explanation, plus the browser width some effects need.
 ## Structure
 
 ```
-index.html            the English home page
-contact/  faq/        crawlable English pages
-landmarks/ kit/ newsroom/   holding pages, noindex until written
-zh/                   crawlable Simplified Chinese pages
-en/                   noindex redirects to the English pages at the root
+index.html                 the English home page
+contact/  faq/             crawlable English pages
+landmarks/ kit/ newsroom/  holding pages, noindex until written
+zh/                        crawlable Simplified Chinese pages
+en/                        noindex redirects to the English pages at the root
 contact.html  kit.html  landmarks.html  newsroom.html
-                      noindex redirects, for older links
-sitemap.xml           language-aware sitemap with hreflang alternates
-dist/                 what actually gets deployed; gitignored, rebuilt each time
-Lazy Commands/        the double-click buttons
-HOW-TO-PREVIEW.md     how to preview, edit, rebuild and deploy
+                           noindex redirects, for older links
+sitemap.xml                language-aware sitemap with hreflang alternates
+dist/                      what actually gets deployed; gitignored, rebuilt each time
+CairnCo - Lazy Commands/   the double-click buttons
+HOW-TO-PREVIEW.md          how to preview, edit, rebuild and deploy
 src/
   index.template.html   edit this for the home page, then run build.py
   contact.template.html edit this for the contact page
@@ -155,11 +155,11 @@ No licence granted. All rights reserved, CAIRNCO HOLDINGS LLP.
 
 ## Housekeeping
 
-The `.bat` files moved into `Lazy Commands/` on 22 Sep 2026. Each one finds the
+The `.bat` files moved into `CairnCo - Lazy Commands/` on 22 Sep 2026. Each one finds the
 site by its own location, so they work from in there and nowhere else. Do not
 move one out on its own.
 
-`Lazy Commands/DELETE-OLD-FILES.bat` has done its job; run it once more and it
+`CairnCo - Lazy Commands/DELETE-OLD-FILES.bat` has done its job; run it once more and it
 removes itself.
 
 `MERGE-EMMANUEL-AND-SAVE.bat` was written for one specific day and should be

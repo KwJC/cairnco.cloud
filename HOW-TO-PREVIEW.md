@@ -2,9 +2,9 @@
 
 ## The short version
 
-Run **`Lazy Commands\PREVIEW.bat`**, then open **http://localhost:8000**.
+Run **`CairnCo - Lazy Commands\PREVIEW.bat`**, then open **http://localhost:8000**.
 
-Run `Lazy Commands\BUILD-AND-DEPLOY.bat` first if you have edited anything in
+Run `CairnCo - Lazy Commands\BUILD-AND-DEPLOY.bat` first if you have edited anything in
 `src\`. Answer **N** when it asks to publish. That builds without touching the
 live site.
 
@@ -148,7 +148,7 @@ silently overwrites it.
 - The arrival sequence timings: the `var T = full ? {...}` table in
   `src\index.template.html`
 
-Then run `Lazy Commands\BUILD-AND-DEPLOY.bat`, or by hand:
+Then run `CairnCo - Lazy Commands\BUILD-AND-DEPLOY.bat`, or by hand:
 
 ```
 python src\build.py
@@ -187,7 +187,7 @@ is drawn live in the browser on a canvas.
 
 ## Deploying to Cloudflare
 
-Use `Lazy Commands\BUILD-AND-DEPLOY.bat`. It builds, checks, and asks before
+Use `CairnCo - Lazy Commands\BUILD-AND-DEPLOY.bat`. It builds, checks, and asks before
 publishing.
 
 By hand:
