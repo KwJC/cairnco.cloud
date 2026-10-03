@@ -1366,6 +1366,10 @@ if _untranslated:
     sys.exit('add them to ZH_TEXT, then rebuild')
 
 GUIDE_CARD_CTA = {'en': 'Read the guide', 'zh': '阅读指南'}
+# Windows onto topo-card.svg, which is 900x760. One per card, cycled, so the
+# first five articles each show different contour lines.
+GUIDE_TOPO_WINDOWS = ('0 0 900 250', '0 255 900 250', '0 510 900 250',
+                      '0 128 900 250', '0 382 900 250')
 GUIDE_NONE = {'en': 'The first guides are being written.',
               'zh': '第一批指南正在撰写中。'}
 
@@ -1381,21 +1385,33 @@ def guide_cards(lang):
     The EN-ONLY wrapper this used to carry is gone: the article has a Chinese
     version now, so both indexes list a real page."""
     arrow = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
-             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
-             'aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>')
+             'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" '
+             'aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>')
     rows = []
+    shown = 0
     for g in GUIDES:
         if lang not in g.get('langs', ('en',)):
             continue
         t = g[lang]
+        # Each card shows a different horizontal band of the same contour field,
+        # so no two cards carry identical lines. Set by viewBox rather than by
+        # nudging the element: an offset element can leave a corner bare, a
+        # viewBox window cannot. The field is 900x760.
+        win = GUIDE_TOPO_WINDOWS[shown % len(GUIDE_TOPO_WINDOWS)]
+        shown += 1
         rows.append(
             '        <a class="gcard" href="%s">\n'
-            '          <span class="gcard__date">%s</span>\n'
-            '          <h2>%s</h2>\n'
-            '          <p>%s</p>\n'
+            '          <span class="gcard__topo" aria-hidden="true">'
+            '<svg viewBox="%s" preserveAspectRatio="xMidYMid slice" fill="none">'
+            '<use href="#topoCard"/></svg></span>\n'
+            '          <span class="gcard__words">\n'
+            '            <span class="gcard__date">%s</span>\n'
+            '            <h2>%s</h2>\n'
+            '            <p>%s</p>\n'
+            '          </span>\n'
             '          <span class="gcard__go">%s%s</span>\n'
             '        </a>'
-            % (page_path(lang, g['key']), human_date(g['published'], lang),
+            % (page_path(lang, g['key']), win, human_date(g['published'], lang),
                _esc(t['heading']), _esc(t['card']),
                GUIDE_CARD_CTA[lang], arrow))
     if not rows:
